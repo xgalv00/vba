@@ -41,6 +41,8 @@ Sub journalCleaning()
     
     Call replRusByEng
     
+'$$$
+    
     'dev codes cleaning
     
     'logging
@@ -94,17 +96,13 @@ Sub journalCleaning()
                 
                 '@todo add checks for differrent change code's formats
                 'change code cleaning
-                If InStr(1, chanCode, "(") <> 0 Then
-                    'if change code contains "(" do nothing
-                    chanCode = chanCode
-                Else
-                    'if not contain look for "."
+                If InStr(1, chanCode, modName) <> 0 Then
+                    'if change code contains name of module try to find the dot
                     If InStr(1, chanCode, ".") <> 0 Then
                         tmpArray = Split(chanCode, ".")
-                        If tmpArray(0) = modName Then
-                            chanCode = tmpArray(1)
-                            chkModNameToo = True
-                        End If
+                        chanCode = tmpArray(1)
+                    Else
+                        Debug.Print "Change code " & chanCode & " in address " & Cells(tmpCell.Row, chanCodeCol).Address & " contains wrong code"
                     End If
                 End If
                 
@@ -114,11 +112,19 @@ Sub journalCleaning()
                 LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
                 MatchCase:=False, SearchFormat:=False)
                 
+                Do While LCase(Trim(modName)) <> LCase(Trim(Cells(foundCell.Row, (devCodeCol - 1)).value)) Or foundCell Is Nothing
                 
+                Set foundCell = Selection.FindNext
+                'Set foundCell = Selection.Find(What:=chanCode, After:=ActiveCell, LookIn:=xlFormulas, _
+                'LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
+                'MatchCase:=False, SearchFormat:=False)
+                
+                Loop
+                
+                
+                'maybe add here do while foundcell is nothing
                 If foundCell Is Nothing Then
-                    'if chanCode doesn't exist in change journal
-                    If Not chkModNameToo Then
-                        'logging
+                
                         Set cachedSht = ActiveSheet
             
                         tmpWSht.Activate
@@ -131,69 +137,29 @@ Sub journalCleaning()
                         clw.move_down(cachedCell).Activate
                         
                         cachedSht.Activate
-                    'Else
-                        'logging
-                        'Set cachedSht = ActiveSheet;tmpWSht.Activate;Set cachedCell = ActiveCell;cachedCell.value = "Ошибка";clw.move_right(cachedCell).value = "Отсутствует номер изменения в журнале изменений"
-                        'clw.move_right(cachedCell, 2).value = devCode;clw.move_right(cachedCell, 3).value = chanCode & "." & modName;clw.move_right(cachedCell, 4).value = tmpCell.Address(False, False);clw.move_down(cachedCell).Activate;
-                        'cachedSht.Activate
-                    End If
+                
                 Else
-                    If chkModNameToo Then
-                        'additional module name check
-                        If modName = Cells(foundCell.Row, (devCodeCol - 1)).value Then
-                            If Cells(foundCell.Row, devCodeCol).value = "" Then
-                                'logging
-
-                                Set cachedSht = ActiveSheet
-                            
-                                tmpWSht.Activate
-                                Set cachedCell = ActiveCell
-                                cachedCell.value = "Изменение"
-                                clw.move_right(cachedCell).value = "Был добавлен номер разработки в журнал изменений"
-                                clw.move_right(cachedCell, 2).value = devCode
-                                clw.move_right(cachedCell, 4).value = Cells(foundCell.Row, devCodeCol).Address(False, False)
-                                clw.move_down(cachedCell).Activate
-                                cachedSht.Activate
-                                
-                                Cells(foundCell.Row, devCodeCol).value = devCode
-                            End If
-                        Else
-                            'logging
-                            
-                            Set cachedSht = ActiveSheet
-                            
-                            tmpWSht.Activate
-                            Set cachedCell = ActiveCell
-                            cachedCell.value = "Ошибка"
-                            clw.move_right(cachedCell).value = "Такого номера изменений нет в журнале изменений, но есть в журнале разработок"
-                            clw.move_right(cachedCell, 2).value = devCode
-                            clw.move_right(cachedCell, 3).value = modName & "." & chanCode
-                            clw.move_right(cachedCell, 4).value = tmpCell.Address(False, False)
-                            clw.move_down(cachedCell).Activate
-                            
-                            cachedSht.Activate
-                            'Debug.Print "Next chanCode doesn't exist in change journal: " & chanCode & "." & modName
-                        End If
+                    foundCell.Select
+                
+                    If Cells(foundCell.Row, devCodeCol).value = "" Then
+                        'logging
+                    
+                        Set cachedSht = ActiveSheet
+                    
+                        tmpWSht.Activate
+                        Set cachedCell = ActiveCell
+                        cachedCell.value = "Изменение"
+                        clw.move_right(cachedCell).value = "Был добавлен номер разработки в журнал изменений"
+                        clw.move_right(cachedCell, 2).value = devCode
+                        clw.move_right(cachedCell, 4).value = Cells(foundCell.Row, devCodeCol).Address(False, False)
+                        clw.move_down(cachedCell).Activate
+                        cachedSht.Activate
+                        
+                        Cells(foundCell.Row, devCodeCol).value = devCode
+                        
                     Else
-                        If Cells(foundCell.Row, devCodeCol).value = "" Then
-                            
-                            'logging
-                            Set cachedSht = ActiveSheet
-                            
-                            tmpWSht.Activate
-                            Set cachedCell = ActiveCell
-                            cachedCell.value = "Изменение"
-                            clw.move_right(cachedCell).value = "Был добавлен номер разработки в журнал изменений"
-                            clw.move_right(cachedCell, 2).value = devCode
-                            clw.move_right(cachedCell, 4).value = Cells(foundCell.Row, devCodeCol).Address(False, False)
-                            clw.move_down(cachedCell).Activate
-                            cachedSht.Activate
-                            'cache
-'
-                            Cells(foundCell.Row, devCodeCol).value = devCode
-                        Else
-                                                        
-                                                        'logging
+                        
+                                                                                'logging
                             prevVal = Cells(foundCell.Row, devCodeCol).value
                             'if previous and new values of dev codes match do nothing
                             If prevVal <> devCode Then
@@ -217,22 +183,25 @@ Sub journalCleaning()
                                 Cells(foundCell.Row, devCodeCol).value = devCode
                             End If
                             prevVal = ""
-                        End If
+                    
                     End If
-                    foundCell.Select
+                    
                 End If
                 
-                Set foundCell = Nothing
-                chkModNameToo = False
             End If
-            devWSht.Activate
-            Set tmpCell = clw.move_down(tmpCell)
+            
         End If
+                
+        Set foundCell = Nothing
+        devWSht.Activate
+        Set tmpCell = clw.move_down(tmpCell)
+
     Loop
     
     
+'$$$
     
-    '@todo debug this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
     
     'change codes cleaning
     'logging
