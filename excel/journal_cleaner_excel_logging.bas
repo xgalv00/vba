@@ -110,6 +110,8 @@ Sub journalCleaning()
                         cachedCell.value = "Ошибка"
                         clw.move_right(cachedCell).value = "Что-то не так с номером изменения в журнале разработок по адресу "
                         clw.move_right(cachedCell, 4).value = Cells(tmpCell.Row, chanCodeCol).Address(False, False)
+                        clw.move_down(cachedCell).Activate
+                        
                         cachedSht.Activate
                         stopCheck = True
                         'Debug.Print "Change code " & chanCode & " in address " & Cells(tmpCell.Row, chanCodeCol).Address & " contains wrong code"
