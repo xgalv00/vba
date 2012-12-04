@@ -17,6 +17,8 @@ Sub journalCleaning()
     Dim cachedCell As Range
     Dim cachedSht As Worksheet
     Dim prevVal As String
+    Dim firstFoundCell As String
+    Dim stopCheck As Boolean
     
     Application.EnableEvents = False
     
@@ -102,96 +104,117 @@ Sub journalCleaning()
                         tmpArray = Split(chanCode, ".")
                         chanCode = tmpArray(1)
                     Else
-                        Debug.Print "Change code " & chanCode & " in address " & Cells(tmpCell.Row, chanCodeCol).Address & " contains wrong code"
-                    End If
-                End If
-                
-                chanWSht.Activate
-                Columns("B:B").Select
-                Set foundCell = Selection.Find(What:=chanCode, After:=ActiveCell, LookIn:=xlFormulas, _
-                LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
-                MatchCase:=False, SearchFormat:=False)
-                
-                Do While LCase(Trim(modName)) <> LCase(Trim(Cells(foundCell.Row, (devCodeCol - 1)).value)) Or foundCell Is Nothing
-                
-                Set foundCell = Selection.FindNext
-                'Set foundCell = Selection.Find(What:=chanCode, After:=ActiveCell, LookIn:=xlFormulas, _
-                'LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
-                'MatchCase:=False, SearchFormat:=False)
-                
-                Loop
-                
-                
-                'maybe add here do while foundcell is nothing
-                If foundCell Is Nothing Then
-                
                         Set cachedSht = ActiveSheet
-            
                         tmpWSht.Activate
                         Set cachedCell = ActiveCell
                         cachedCell.value = "Ошибка"
-                        clw.move_right(cachedCell).value = "Такого номера изменений нет в журнале изменений, но есть в журнале разработок"
-                        clw.move_right(cachedCell, 2).value = devCode
-                        clw.move_right(cachedCell, 3).value = chanCode
-                        clw.move_right(cachedCell, 4).value = tmpCell.Address(False, False)
-                        clw.move_down(cachedCell).Activate
-                        
+                        clw.move_right(cachedCell).value = "Что-то не так с номером изменения в журнале разработок по адресу "
+                        clw.move_right(cachedCell, 4).value = Cells(tmpCell.Row, chanCodeCol).Address(False, False)
                         cachedSht.Activate
-                
-                Else
-                    foundCell.Select
-                
-                    If Cells(foundCell.Row, devCodeCol).value = "" Then
-                        'logging
+                        stopCheck = True
+                        'Debug.Print "Change code " & chanCode & " in address " & Cells(tmpCell.Row, chanCodeCol).Address & " contains wrong code"
+                    End If
+                End If
+                If Not stopCheck Then
+                    chanWSht.Activate
+                    Columns("B:B").Select
+                    Set foundCell = Selection.Find(What:=chanCode, After:=ActiveCell, LookIn:=xlFormulas, _
+                    LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
+                    MatchCase:=False, SearchFormat:=False)
                     
-                        Set cachedSht = ActiveSheet
                     
-                        tmpWSht.Activate
-                        Set cachedCell = ActiveCell
-                        cachedCell.value = "Изменение"
-                        clw.move_right(cachedCell).value = "Был добавлен номер разработки в журнал изменений"
-                        clw.move_right(cachedCell, 2).value = devCode
-                        clw.move_right(cachedCell, 4).value = Cells(foundCell.Row, devCodeCol).Address(False, False)
-                        clw.move_down(cachedCell).Activate
-                        cachedSht.Activate
+                    If Not foundCell Is Nothing Then
+                        firstFoundCell = foundCell.Address
                         
-                        Cells(foundCell.Row, devCodeCol).value = devCode
-                        
-                    Else
-                        
-                                                                                'logging
-                            prevVal = Cells(foundCell.Row, devCodeCol).value
-                            'if previous and new values of dev codes match do nothing
-                            If prevVal <> devCode Then
-                                Set cachedSht = ActiveSheet
-                                
-                                tmpWSht.Activate
-                                Set cachedCell = ActiveCell
-                                cachedCell.value = "Изменение"
-                                clw.move_right(cachedCell).value = "Номер разработки в журнале изменений был изменен на"
-                                clw.move_right(cachedCell, 2).value = devCode
-                                'cachedCell.Select
-                                clw.move_right(cachedCell, 4).value = Cells(foundCell.Row, devCodeCol).Address(False, False)
-                                'chanWSht.Activate
-                                'prevVal = Cells(foundCell.Row, devCodeCol).value
-                                'tmpWSht.Activate
-                                clw.move_right(cachedCell, 5).value = prevVal
-                                clw.move_down(cachedCell).Activate
-                                cachedSht.Activate
-                                'cache
-                                
-                                Cells(foundCell.Row, devCodeCol).value = devCode
+                        Do While LCase(Trim(modName)) <> LCase(Trim(Cells(foundCell.Row, (devCodeCol - 1)).value))
+                            
+                            Set foundCell = Selection.FindNext
+                            'Set foundCell = Selection.Find(What:=chanCode, After:=ActiveCell, LookIn:=xlFormulas, _
+                            'LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
+                            'MatchCase:=False, SearchFormat:=False)
+                            If firstFoundCell = foundCell.Address Then
+                                Set foundCell = Nothing
+                                firstFoundCell = ""
+                                Exit Do
                             End If
-                            prevVal = ""
-                    
+                        
+                        Loop
                     End If
                     
-                End If
+                    
+                    'maybe add here do while foundcell is nothing
+                    If foundCell Is Nothing Then
+                    
+                            Set cachedSht = ActiveSheet
+                
+                            tmpWSht.Activate
+                            Set cachedCell = ActiveCell
+                            cachedCell.value = "Ошибка"
+                            clw.move_right(cachedCell).value = "Такого номера изменений (или комбинации модуля и номера) нет в журнале изменений, но есть в журнале разработок"
+                            clw.move_right(cachedCell, 2).value = devCode
+                            clw.move_right(cachedCell, 3).value = chanCode
+                            clw.move_right(cachedCell, 4).value = tmpCell.Address(False, False)
+                            clw.move_down(cachedCell).Activate
+                            
+                            cachedSht.Activate
+                    
+                    Else
+                        foundCell.Select
+                    
+                        If Cells(foundCell.Row, devCodeCol).value = "" Then
+                            'logging
+                        
+                            Set cachedSht = ActiveSheet
+                        
+                            tmpWSht.Activate
+                            Set cachedCell = ActiveCell
+                            cachedCell.value = "Изменение"
+                            clw.move_right(cachedCell).value = "Был добавлен номер разработки в журнал изменений"
+                            clw.move_right(cachedCell, 2).value = devCode
+                            clw.move_right(cachedCell, 4).value = Cells(foundCell.Row, devCodeCol).Address(False, False)
+                            clw.move_down(cachedCell).Activate
+                            cachedSht.Activate
+                            
+                            Cells(foundCell.Row, devCodeCol).value = devCode
+                            
+                        Else
+                            
+                                                                                    'logging
+                                prevVal = Cells(foundCell.Row, devCodeCol).value
+                                'if previous and new values of dev codes match do nothing
+                                If prevVal <> devCode Then
+                                    Set cachedSht = ActiveSheet
+                                    
+                                    tmpWSht.Activate
+                                    Set cachedCell = ActiveCell
+                                    cachedCell.value = "Изменение"
+                                    clw.move_right(cachedCell).value = "Номер разработки в журнале изменений был изменен на"
+                                    clw.move_right(cachedCell, 2).value = devCode
+                                    'cachedCell.Select
+                                    clw.move_right(cachedCell, 4).value = Cells(foundCell.Row, devCodeCol).Address(False, False)
+                                    'chanWSht.Activate
+                                    'prevVal = Cells(foundCell.Row, devCodeCol).value
+                                    'tmpWSht.Activate
+                                    clw.move_right(cachedCell, 5).value = prevVal
+                                    clw.move_down(cachedCell).Activate
+                                    cachedSht.Activate
+                                    'cache
+                                    
+                                    Cells(foundCell.Row, devCodeCol).value = devCode
+                                End If
+                                prevVal = ""
+                        
+                        End If 'If Cells(foundCell.Row, devCodeCol).value = "" Then
+                        
+                    End If 'If foundCell Is Nothing Then
+                
+                End If 'if not stopCheck then
                 
             End If
             
         End If
                 
+        stopCheck = False
         Set foundCell = Nothing
         devWSht.Activate
         Set tmpCell = clw.move_down(tmpCell)
