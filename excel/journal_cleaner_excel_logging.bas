@@ -83,8 +83,6 @@ Sub journalCleaning()
             Set cachedCell = ActiveCell
             cachedCell.value = "Ошибка"
             clw.move_right(cachedCell).value = "Пропущен код разработки в журнале разработок"
-            'clw.move_right(cachedCell, 2).value = devCode
-            'clw.move_right(cachedCell, 3).value = chanCode & "." & modName
             clw.move_right(cachedCell, 4).value = tmpCell.Address(False, False)
             clw.move_down(cachedCell).Activate
             
@@ -96,7 +94,6 @@ Sub journalCleaning()
             If chanCode <> "" Then
                 chanCode = Trim(chanCode)
                 
-                '@todo add checks for differrent change code's formats
                 'change code cleaning
                 If InStr(1, chanCode, modName) <> 0 Then
                     'if change code contains name of module try to find the dot
@@ -104,6 +101,7 @@ Sub journalCleaning()
                         tmpArray = Split(chanCode, ".")
                         chanCode = tmpArray(1)
                     Else
+                        '"Change code contains wrong code"
                         Set cachedSht = ActiveSheet
                         tmpWSht.Activate
                         Set cachedCell = ActiveCell
@@ -114,7 +112,6 @@ Sub journalCleaning()
                         
                         cachedSht.Activate
                         stopCheck = True
-                        'Debug.Print "Change code " & chanCode & " in address " & Cells(tmpCell.Row, chanCodeCol).Address & " contains wrong code"
                     End If
                 End If
                 If Not stopCheck Then
@@ -131,9 +128,6 @@ Sub journalCleaning()
                         Do While LCase(Trim(modName)) <> LCase(Trim(Cells(foundCell.Row, (devCodeCol - 1)).value))
                             
                             Set foundCell = Selection.FindNext
-                            'Set foundCell = Selection.Find(What:=chanCode, After:=ActiveCell, LookIn:=xlFormulas, _
-                            'LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
-                            'MatchCase:=False, SearchFormat:=False)
                             If firstFoundCell = foundCell.Address Then
                                 Set foundCell = Nothing
                                 firstFoundCell = ""
@@ -192,11 +186,7 @@ Sub journalCleaning()
                                     cachedCell.value = "Изменение"
                                     clw.move_right(cachedCell).value = "Номер разработки в журнале изменений был изменен на"
                                     clw.move_right(cachedCell, 2).value = devCode
-                                    'cachedCell.Select
                                     clw.move_right(cachedCell, 4).value = Cells(foundCell.Row, devCodeCol).Address(False, False)
-                                    'chanWSht.Activate
-                                    'prevVal = Cells(foundCell.Row, devCodeCol).value
-                                    'tmpWSht.Activate
                                     clw.move_right(cachedCell, 5).value = prevVal
                                     clw.move_down(cachedCell).Activate
                                     cachedSht.Activate
@@ -236,9 +226,9 @@ Sub journalCleaning()
     Set tmpCell = ActiveCell
     tmpCell.value = "Тип"
     clw.move_right(tmpCell).value = "Наименование ошибки/изменения"
-    clw.move_right(tmpCell, 2).value = "Код разработки"
-    clw.move_right(tmpCell, 3).value = "Код изменения"
-    clw.move_right(tmpCell, 4).value = "Адрес ячейки кода изменения/разработки"
+    clw.move_right(tmpCell, 3).value = "Код разработки"
+    clw.move_right(tmpCell, 2).value = "Код изменения"
+    clw.move_right(tmpCell, 4).value = "Адрес ячейки кода изменения/разработки в журнале разработок"
     clw.move_right(tmpCell, 5).value = "Предыдущее значение кода изменений в журнале разработок"
     clw.move_down(tmpCell).Activate
     
@@ -273,8 +263,8 @@ Sub journalCleaning()
                     Set cachedCell = ActiveCell
                     cachedCell.value = "Ошибка"
                     clw.move_right(cachedCell).value = "Код разработки отсутствует в журнале разработок, но есть в журнале изменений"
-                    clw.move_right(cachedCell, 2).value = devCode
-                    clw.move_right(cachedCell, 3).value = chanCode
+                    clw.move_right(cachedCell, 3).value = devCode
+                    clw.move_right(cachedCell, 2).value = chanCode
                     clw.move_right(cachedCell, 4).value = Cells(tmpCell.Row, devCodeCol).Address(False, False)
                     clw.move_down(cachedCell).Activate
                 Else
@@ -288,13 +278,10 @@ Sub journalCleaning()
                         Set cachedCell = ActiveCell
                         cachedCell.value = "Изменение"
                         clw.move_right(cachedCell).value = "Номер изменения в журнале разработок был изменен на"
-                        clw.move_right(cachedCell, 2).value = devCode
-                        clw.move_right(cachedCell, 3).value = chanCode
+                        clw.move_right(cachedCell, 3).value = devCode
+                        clw.move_right(cachedCell, 2).value = chanCode
                         'cachedCell.Select
                         clw.move_right(cachedCell, 4).value = Cells(foundCell.Row, devCodeCol).Address(False, False)
-                        'chanWSht.Activate
-                        'prevVal = Cells(foundCell.Row, devCodeCol).value
-                        'tmpWSht.Activate
                         clw.move_right(cachedCell, 5).value = prevVal
                         clw.move_down(cachedCell).Activate
                         cachedSht.Activate
@@ -304,17 +291,8 @@ Sub journalCleaning()
                     End If
                     prevVal = ""
                     
-                    'tmpStr = Cells(foundCell.Row, chanCodeCol).Value
-                    'If Cells(foundCell.Row, chanCodeCol).value = "" Then
-                        'logging
-                        'cache
-                        
-                        'work
-                    '    Cells(foundCell.Row, chanCodeCol).value = chanCode
-                    'End If
                 End If
                 
-                'foundCell.Select
                 Set foundCell = Nothing
             Else
                     
@@ -327,9 +305,8 @@ Sub journalCleaning()
                         Set cachedCell = ActiveCell
                         cachedCell.value = "Ошибка"
                         clw.move_right(cachedCell).value = "Отсутствует номер разработки в журнале изменений"
-                        clw.move_right(cachedCell, 3).value = chanCode
+                        clw.move_right(cachedCell, 2).value = chanCode
                         clw.move_right(cachedCell, 4).value = tmpCell.Address(False, False)
-                        'clw.move_right(cachedCell, 4).value =
                         clw.move_down(cachedCell).Activate
                         
                         cachedSht.Activate
