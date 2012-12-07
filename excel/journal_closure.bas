@@ -18,6 +18,8 @@ Sub UseCanCheckOut()
         Set wb = xlApp.Workbooks.Open(xlFile, , False)
         
         MsgBox wb.Name & " is checked out to you."
+        
+        wb.CheckIn (True)
     
     Else
     '
@@ -26,3 +28,22 @@ Sub UseCanCheckOut()
 
 
 End Sub
+
+Function isValidVal(inVal As String, modName As String) As Boolean
+    Dim tmpArr As Variant
+    
+    If inVal <> "" Then
+    
+        If InStr(1, inVal, ".") <> 0 Then
+            tmpArr = Split(inVal, ".")
+            If IsNumeric(tmpArr(1)) And LCase(Trim(tmpArr(0))) = LCase(Trim(modName)) Then
+                isValidVal = True
+            End If
+        Else
+            isValidVal = IsNumeric(inVal)
+        End If
+    
+    End If
+
+End Function
+
