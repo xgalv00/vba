@@ -22,22 +22,30 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
         Set wb = Workbooks.Open(xlFile, , False)
         Set wSht = wb.Sheets("журнал запросов на измение")
         wSht.Select
+        Application.EnableEvents = False
         
         wSht.UsedRange.AutoFilter Field:=3, Criteria1:=Array(modName), Operator:=xlFilterValues
         
         wSht.Columns("B:B").Select
     
         Set foundCell = Selection.Find(What:=targetVal, After:=ActiveCell, LookIn:=xlFormulas, LookAt _
-        :=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:= _
+        :=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:= _
         False, SearchFormat:=False)
         
         If foundCell Is Nothing Then
             MsgBox "Change number that you have entered doesn't exist"
             '@todo clear value that have been entered in developers journal
+            
+        Else
+        
+            Cells(foundCell.Row, foundCell.Column + 2).Value = changeToVal
+        
         End If
         
         'MsgBox wb.Name & " is checked out to you."
         'xlApp.EnableEvents = True
+        Application.EnableEvents = True
+        wb.CheckIn (True)
     Else
     '
         MsgBox "You are unable to check out this document at this time. Please try again later."
