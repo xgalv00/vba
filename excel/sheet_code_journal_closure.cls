@@ -12,7 +12,9 @@ Public modName As String
 Private Sub Worksheet_Change(ByVal Target As Range)
     Dim validVal As Boolean
     Dim isFree As Boolean
+    Dim targIsClear As Boolean
     
+    'targIsClear = False
     If Target.Column = 2 Then
         'if change code added
         modName = Cells(Target.Row, Target.Column + 1).value
@@ -21,8 +23,14 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         If validVal Then
             journal_closure.UseCanCheckOut Target.value, modName
         Else
+        
+            If targIsClear Then
+                MsgBox "Value that you have entered is incorrect. Correct format is change number only or module name.change number (e.g. MM.101)"
+                Exit Sub
+            End If
+            targIsClear = True
             Target.value = ""
-            MsgBox "Value that you have entered is incorrect. Correct format is change number only or module name.change number (e.g. MM.101)"
+            
         End If
     
     End If

@@ -6,6 +6,7 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
     Dim wb As Workbook
     Dim xlFile As String
     Dim foundCell As Range
+    Dim wSht As Worksheet
     
     'xlFile = "https://workspaces.dtek.com/it/oisup/ProjectSAP/ChangeManagement/Журнал%20регистрации%20изменений%20в%20проектах%20SAP.xlsm"
     xlFile = "https://workspaces.dtek.com/it/oisup/ProjectSAP/ChangeManagement/test.xlsm"
@@ -14,16 +15,17 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
     If Workbooks.CanCheckOut(xlFile) = True Then
         Workbooks.CheckOut xlFile
         
-        Set xlApp = New Excel.Application
-        xlApp.Visible = True
-        xlApp.EnableEvents = False
+        'Set xlApp = New Excel.Application
+        'xlApp.Visible = True
+        'xlApp.EnableEvents = False
         
-        Set wb = xlApp.Workbooks.Open(xlFile, , False)
-        wb.Sheets("журнал запросов на измение").Activate
+        Set wb = Workbooks.Open(xlFile, , False)
+        Set wSht = wb.Sheets("журнал запросов на измение")
+        wSht.Select
         
-        ActiveSheet.UsedRange.AutoFilter Field:=3, Criteria1:=Array(modName), Operator:=xlFilterValues
+        wSht.UsedRange.AutoFilter Field:=3, Criteria1:=Array(modName), Operator:=xlFilterValues
         
-        Columns("B:B").Select
+        wSht.Columns("B:B").Select
     
         Set foundCell = Selection.Find(What:=targetVal, After:=ActiveCell, LookIn:=xlFormulas, LookAt _
         :=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:= _
@@ -35,7 +37,7 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
         End If
         
         'MsgBox wb.Name & " is checked out to you."
-        xlApp.EnableEvents = True
+        'xlApp.EnableEvents = True
     Else
     '
         MsgBox "You are unable to check out this document at this time. Please try again later."
