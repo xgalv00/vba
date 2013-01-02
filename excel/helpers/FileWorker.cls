@@ -126,6 +126,36 @@ Public Sub deleteFilesFromFolder(folName As String)
     'RmDir folName
 End Sub
 
+Public Function readLinesFromTxt(fPath As String) As Collection
+    'returns collection of strings line by line, and returns nothing if file is empty
+    Dim tmpColl As New Collection
+    Dim tmpString As String
+    
+    Open fPath For Input As #1 ' Open file for input.
+    Do While Not EOF(1) ' Loop until end of file.
+        Line Input #1, tmpString ' Read line into temp string.
+        tmpColl.Add tmpString
+        'Debug.Print tmpString ' Print data to the Immediate window.
+    Loop
+    
+    Close #1
+   
+    If tmpColl.Count > 0 Then
+        Set readLinesFromTxt = tmpColl
+    Else
+        Set readLinesFromTxt = Nothing
+    End If
+
+End Function
+
+
+
+
+
+
+
+
+
 Public Sub createXml(dFileName As String, rootTagName As String)
     'create first lines of xml document and save this file
     'opens text file
