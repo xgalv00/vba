@@ -1,0 +1,10 @@
+J<-DS
+K<-DT
+M<-DV
+N<-DW
+T<-CE
+U<-CF
+W<-CN
+X<-CO
+Z<-CQ
+AA<-CR
