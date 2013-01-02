@@ -7,6 +7,9 @@ Sub stub()
     
     fPath = "C:\Users\GalkinVa\Desktop\column_copy_mapping.txt"
     
+    Set wbFrom = Workbooks("Модель Бюджетирования_3_для Салькова.xlsx")
+    Set wbTo = Workbooks("Модель Бюджетирования_3_для Салькова_копия.xlsx")
+    
     Call readMapFromFile(fPath)
     Call copyColumns(wbFrom, wbTo)
 
@@ -54,7 +57,7 @@ Sub fillCols(inCol As Collection)
         
     Next Item
     
-    shtsCopy.Add ("Б_прод")
+    shtsCopy.Add ("Б_продаж")
     shtsCopy.Add ("БПСС")
     shtsCopy.Add ("Услуги_в_БПСС")
     shtsCopy.Add ("Прочие_в_БПСС")
@@ -68,8 +71,47 @@ End Sub
 
 Sub copyColumns(wbFrom As Workbook, wbTo As Workbook)
 
+    Dim clw As New CellWorker
+    Dim foundCell As Range
+    Dim tmpAddr As String
+    Dim destSht As Worksheet, srcSht As Worksheet
+    Dim tmpRow As Integer
+    Dim tmpStr As String
     
-
+    
+    For Each sht In shtsCopy
+    
+        Set destSht = wbTo.Sheets(sht)
+        Set srcSht = wbFrom.Sheets(sht)
+        
+        For Each clmn In colsTo
+            tmpStr = clmn & "1"
+            'wbTo.Activate
+            destSht.Activate
+            Range(tmpStr).Select
+            
+            Application.FindFormat.Interior.Color = 13434879 'here color value can be changed
+            
+            'move line by line within given column
+            Set foundCell = destSht.UsedRange.Find(What:="", After:=ActiveCell, LookIn:=xlFormulas, LookAt:= _
+                xlPart, SearchOrder:=xlByColumns, SearchDirection:=xlNext, MatchCase:= _
+                False, SearchFormat:=True)
+                
+            foundCell.Select 'test line
+                
+            Do While Not foundCell Is Nothing
+            
+                foundCell.Select 'test line
+                
+                tmpAddr = foundCell.Address
+                'copy only cells that have values
+                destSht.Range(tmpAddr).value = srcSht.Range(tmpAddr).value
+            
+                Set foundCell = ActiveCell.FindNext
+            Loop
+        
+        Next clmn
+    Next sht
 
 End Sub
 
