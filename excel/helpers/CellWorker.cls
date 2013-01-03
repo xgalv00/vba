@@ -19,7 +19,12 @@ End Function
 Public Function move_down(moveFromCell As Range, Optional howFar As Integer) As Range
     
     If howFar = 0 Then
-        howFar = 1
+        'if this check isn't present loops infinitely
+        If moveFromCell.MergeCells Then
+            howFar = moveFromCell.MergeArea.Rows.Count
+        Else
+            howFar = 1
+        End If
     End If
     
     Cells(moveFromCell.Row + howFar, moveFromCell.Column).Select

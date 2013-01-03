@@ -72,11 +72,12 @@ End Sub
 Sub copyColumns(wbFrom As Workbook, wbTo As Workbook)
 
     Dim clw As New CellWorker
+    Dim tmpCell As Range
+    Dim tmpAddr As String, tmpStr As String
+    Dim srcAddr As String, destAddr As String
     Dim foundCell As Range
-    Dim tmpAddr As String
     Dim destSht As Worksheet, srcSht As Worksheet
-    Dim tmpRow As Integer
-    Dim tmpStr As String
+    Dim i As Integer, clmn As String
     
     
     For Each sht In shtsCopy
@@ -84,33 +85,32 @@ Sub copyColumns(wbFrom As Workbook, wbTo As Workbook)
         Set destSht = wbTo.Sheets(sht)
         Set srcSht = wbFrom.Sheets(sht)
         
-        For Each clmn In colsTo
+        For i = 1 To colsTo.Count
+            
+            clmn = colsTo(i)
             tmpStr = clmn & "1"
-            'wbTo.Activate
             destSht.Activate
-            Range(tmpStr).Select
             
-            Application.FindFormat.Interior.Color = 13434879 'here color value can be changed
+            Set tmpCell = Range(tmpStr)
             
-            'move line by line within given column
-            Set foundCell = destSht.UsedRange.Find(What:="", After:=ActiveCell, LookIn:=xlFormulas, LookAt:= _
-                xlPart, SearchOrder:=xlByColumns, SearchDirection:=xlNext, MatchCase:= _
-                False, SearchFormat:=True)
                 
-            foundCell.Select 'test line
+            Do While tmpCell.Row <= destSht.UsedRange.Rows.Count + destSht.UsedRange.Row
                 
-            Do While Not foundCell Is Nothing
-            
-                foundCell.Select 'test line
+                If tmpCell.Interior.Color = 13434879 Then
+                    destAddr = tmpCell.Address(False, False)
+                    srcAddr = colsFrom(i) & tmpCell.Row
+                    'condition for productivity does not copy same values (like null or empty)
+                    If Not destSht.Range(destAddr).value = srcSht.Range(srcAddr).value Then
+                        destSht.Range(destAddr).value = srcSht.Range(srcAddr).value
+                    End If
+                End If
                 
-                tmpAddr = foundCell.Address
-                'copy only cells that have values
-                destSht.Range(tmpAddr).value = srcSht.Range(tmpAddr).value
-            
-                Set foundCell = ActiveCell.FindNext
+                Set tmpCell = clw.move_down(tmpCell)
+                Set tmpCell = Range(clmn & tmpCell.Row)
             Loop
         
-        Next clmn
+        Next i
+        
     Next sht
 
 End Sub
