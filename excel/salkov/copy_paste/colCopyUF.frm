@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Private Sub cancelBtn_Click()
     Unload Me
 End Sub
@@ -34,23 +35,25 @@ Private Sub copyFromChsBtn_Click()
     Title = "Выберите файлы для консолидации"
     ' Get the file name
     
-    FileName = Application.GetOpenFilename _
+    Filename = Application.GetOpenFilename _
                 (FileFilter:=Filt, _
                 FilterIndex:=FilterIndex, _
                 Title:=Title, _
                 MultiSelect:=False)
     ' Exit if dialog box canceled
-    If FileName = "" Then
+    If Filename = False Then
         MsgBox "Пожалуйста, выберите файл"
         Exit Sub
     End If
     ' Display full path and name of the files
-    Msg = Msg & flw.extractNameWithExt(CStr(FileName))
+    Msg = CStr(Filename)
     
     colCopyUF.Label7.Caption = Msg
     colCopyUF.Label7.ForeColor = vbBlack
     colCopyUF.Label7.ControlTipText = "Имя файла из которого будет выполнятся копирование"
-    colCopyUF.Label8.ForeColor = vbRed
+    If Label8.Caption = "Выберите файл в который будет произведено копирование" Then
+        colCopyUF.Label8.ForeColor = vbRed
+    End If
     colCopyUF.copyToChsBtn.Enabled = True
     
 End Sub
@@ -73,18 +76,19 @@ Private Sub copyToChsBtn_Click()
     Title = "Выберите файлы для консолидации"
     ' Get the file name
     
-    FileName = Application.GetOpenFilename _
+    Filename = Application.GetOpenFilename _
                 (FileFilter:=Filt, _
                 FilterIndex:=FilterIndex, _
                 Title:=Title, _
                 MultiSelect:=False)
     ' Exit if dialog box canceled
-    If FileName = "" Then
+    If Filename = False Then
         MsgBox "Пожалуйста, выберите файл"
         Exit Sub
     End If
+    
     ' Display full path and name of the files
-    Msg = Msg & flw.extractNameWithExt(CStr(FileName))
+    Msg = CStr(Filename)
     
     colCopyUF.Label8.Caption = Msg
     colCopyUF.Label8.ForeColor = vbBlack
@@ -111,9 +115,10 @@ Private Sub execBtn_Click()
         checkedVal = 5
     End If
     
-    Set wbFrom = Workbooks(flw.extractNameWithExt(Label7.Caption))
-    Set wbTo = Workbooks(flw.extractNameWithExt(Label8.Caption))
+    Set wbFrom = Workbooks.Open(Label7.Caption, False)
+    Set wbTo = Workbooks.Open(Label8.Caption)
     
     Call centralExecUnit(checkedVal, wbFrom, wbTo)
     
+    Unload Me
 End Sub

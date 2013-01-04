@@ -1,6 +1,11 @@
 Attribute VB_Name = "copyPasteProj"
 Dim colsFrom As Collection, colsTo As Collection, shtsCopy As Collection
 
+Sub startNewCopyBtn_Click()
+
+    colCopyUF.Show
+
+End Sub
 
 Sub stub()
     Dim wbFrom As Workbook, wbTo As Workbook, colsFrom As Collection, colsTo As Collection, shtsCopy As Collection

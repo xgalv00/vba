@@ -12,7 +12,7 @@ Public Function getFolderPath(dialogTitle As String) As String
     
     With Application.FileDialog(msoFileDialogFolderPicker)
         .InitialFileName = Application.DefaultFilePath & "\"
-        .title = dialogTitle
+        .Title = dialogTitle
         .Show
         If .SelectedItems.Count <> 0 Then
              tmpFolderPath = .SelectedItems(1)
@@ -48,7 +48,8 @@ Public Function extractName(fullFileName As String) As String
     temp = Split(fullFileName, ".")
     ext = temp(UBound(temp))
     fileNameLength = Len(fullFileName) - Len(ext) - 1
-    extractName = Left(fullFileName, fileNameLength)
+    temp = Split(Left(fullFileName, fileNameLength), "\")
+    extractName = temp(UBound(temp))
 
 End Function
 
