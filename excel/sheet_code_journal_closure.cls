@@ -8,11 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Public modName As String
-Dim targIsClear As Boolean
+Public targNeedClear As Boolean
 
 Private Sub Worksheet_Change(ByVal Target As Range)
     Dim validVal As Boolean
     Dim isFree As Boolean
+    Dim valForChange As String
     
     
     'targIsClear = False
@@ -22,7 +23,8 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         validVal = journal_closure.isValidVal(Target.Value)
         
         If validVal Then
-            journal_closure.UseCanCheckOut Target.Value, modName
+            valForChange = Cells(Target.Row, Target.Column + 2).Value
+            journal_closure.UseCanCheckOut Target.Value, modName, valForChange
         Else
             If Target.Value = "" Then
                 'maybe add some reaction on empty value
@@ -33,14 +35,17 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                 Target.Value = ""
                 Application.EnableEvents = True
             End If
-            'If targIsClear Then
-            '    MsgBox "Value that you have entered is incorrect. Correct format is change number only (e.g. 101)"
-            '    targIsClear = False
-            '    Exit Sub
-            'End If
-            'targIsClear = True
-            'Target.Value = ""
+
+
             
+        End If
+        
+        'check if target needs to be cleared when non-existent value was entered
+        If targNeedClear Then
+            Application.EnableEvents = False
+            Target.Value = ""
+            Application.EnableEvents = True
+            targNeedClear = False
         End If
     
     End If

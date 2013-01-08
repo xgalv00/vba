@@ -1,5 +1,5 @@
 Attribute VB_Name = "journal_closure"
-Sub UseCanCheckOut(targetVal As String, modName As String)
+Sub UseCanCheckOut(targetVal As String, modName As String, valForChange As String)
 
 
     Dim xlApp As Excel.Application
@@ -7,6 +7,7 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
     Dim xlFile As String
     Dim foundCell As Range
     Dim wSht As Worksheet
+    Dim errMsg As String
     
     'xlFile = "https://workspaces.dtek.com/it/oisup/ProjectSAP/ChangeManagement/Журнал%20регистрации%20изменений%20в%20проектах%20SAP.xlsm"
     xlFile = "https://workspaces.dtek.com/it/oisup/ProjectSAP/ChangeManagement/test.xlsm"
@@ -15,16 +16,19 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
     targetVal = Trim(targetVal)
     modName = Trim(modName)
     
+
+    'many events in workbook to open
+    Application.EnableEvents = False
+    
     'Determine if workbook can be checked out.
     If Workbooks.CanCheckOut(xlFile) = True Then
+        
+
         Workbooks.CheckOut xlFile
         
         Set wb = Workbooks.Open(xlFile, , False)
         Set wSht = wb.Sheets("журнал запросов на измение")
         wSht.Select
-        Application.EnableEvents = False
-        
-        'wSht.UsedRange.AutoFilter Field:=3, Criteria1:=Array(modName), Operator:=xlFilterValues
         
         wSht.Columns("B:B").Select
     
@@ -34,24 +38,30 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
         
         If foundCell Is Nothing Then
             MsgBox "Change number that you have entered doesn't exist"
-            '@todo clear value that have been entered in developers journal
-            
+            '@todo clear  value that have been entered in developers journal
+            Лист1.targNeedClear = True
         Else
         
-            Cells(foundCell.Row, foundCell.Column + 2).Value = changeToVal
+
+            Cells(foundCell.Row, foundCell.Column + 2).Value = valForChange
             
+            'check if different names of module used, only check do nothing
             If modName <> Trim(Cells(foundCell.Row, foundCell.Column + 1).Value) Then
-            'maybe @todo insert this value to some userform
-                Debug.Print "Names of modules don't match, maybe this is not a mistake but check it please" & vbCrLf
-                Debug.Print "Module's name from dev journal " & modName & "; Module's name from change journal " & Trim(Cells(foundCell.Row, foundCell.Column + 1).Value)
+                errMsg = "Возможная ошибка " & vbCrLf
+                errMsg = errMsg & "Names of modules don't match, maybe this is not a mistake but check it please" & vbCrLf
+                errMsg = errMsg & "Module's name from dev journal " & modName & "; Module's name from change journal " & Trim(Cells(foundCell.Row, foundCell.Column + 1).Value)
             End If
-        
+            
+            MsgBox valForChange & " было вставлено в " & "[" & wb.Name & "]!" & wSht.Name & "." & Cells(foundCell.Row, foundCell.Column + 2).Address(False, False) & vbCrLf & vbCrLf & vbCrLf & errMsg
+            errMsg = ""
+
         End If
         
-        'MsgBox wb.Name & " is checked out to you."
-        'xlApp.EnableEvents = True
         Application.EnableEvents = True
         wb.CheckIn (True)
+        
+        
+        
     Else
     '
         MsgBox "You are unable to check out this document at this time. Please try again later."
