@@ -19,24 +19,33 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     If Target.Column = 2 Then
         'if change code added
         modName = Cells(Target.Row, Target.Column + 1).Value
-        validVal = journal_closure.isValidVal(Target.Value, modName)
+        validVal = journal_closure.isValidVal(Target.Value)
         
         If validVal Then
             journal_closure.UseCanCheckOut Target.Value, modName
         Else
-        
-            If targIsClear Then
-                MsgBox "Value that you have entered is incorrect. Correct format is change number only or module name.change number (e.g. MM.101)"
-                targIsClear = False
-                Exit Sub
+            If Target.Value = "" Then
+                'maybe add some reaction on empty value
+                'Debug.Print "some"
+            Else
+                MsgBox "Value that you have entered is incorrect. Correct format is change number only (e.g. 101)"
+                Application.EnableEvents = False
+                Target.Value = ""
+                Application.EnableEvents = True
             End If
-            targIsClear = True
-            Target.Value = ""
+            'If targIsClear Then
+            '    MsgBox "Value that you have entered is incorrect. Correct format is change number only (e.g. 101)"
+            '    targIsClear = False
+            '    Exit Sub
+            'End If
+            'targIsClear = True
+            'Target.Value = ""
             
         End If
     
     End If
     
 End Sub
+
 
 

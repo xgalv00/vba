@@ -11,20 +11,20 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
     'xlFile = "https://workspaces.dtek.com/it/oisup/ProjectSAP/ChangeManagement/Журнал%20регистрации%20изменений%20в%20проектах%20SAP.xlsm"
     xlFile = "https://workspaces.dtek.com/it/oisup/ProjectSAP/ChangeManagement/test.xlsm"
     
+    'prepare values
+    targetVal = Trim(targetVal)
+    modName = Trim(modName)
+    
     'Determine if workbook can be checked out.
     If Workbooks.CanCheckOut(xlFile) = True Then
         Workbooks.CheckOut xlFile
-        
-        'Set xlApp = New Excel.Application
-        'xlApp.Visible = True
-        'xlApp.EnableEvents = False
         
         Set wb = Workbooks.Open(xlFile, , False)
         Set wSht = wb.Sheets("журнал запросов на измение")
         wSht.Select
         Application.EnableEvents = False
         
-        wSht.UsedRange.AutoFilter Field:=3, Criteria1:=Array(modName), Operator:=xlFilterValues
+        'wSht.UsedRange.AutoFilter Field:=3, Criteria1:=Array(modName), Operator:=xlFilterValues
         
         wSht.Columns("B:B").Select
     
@@ -39,6 +39,12 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
         Else
         
             Cells(foundCell.Row, foundCell.Column + 2).Value = changeToVal
+            
+            If modName <> Trim(Cells(foundCell.Row, foundCell.Column + 1).Value) Then
+            'maybe @todo insert this value to some userform
+                Debug.Print "Names of modules don't match, maybe this is not a mistake but check it please" & vbCrLf
+                Debug.Print "Module's name from dev journal " & modName & "; Module's name from change journal " & Trim(Cells(foundCell.Row, foundCell.Column + 1).Value)
+            End If
         
         End If
         
@@ -54,25 +60,10 @@ Sub UseCanCheckOut(targetVal As String, modName As String)
 
 End Sub
 
-Function isValidVal(inVal As String, modName As String) As Boolean
-    Dim tmpArr As Variant
+Function isValidVal(inVal As String) As Boolean
     
     If inVal <> "" Then
-    
-        If InStr(1, inVal, ".") <> 0 Then
-            tmpArr = Split(inVal, ".")
-            If IsNumeric(tmpArr(1)) And (LCase(Trim(tmpArr(0))) = LCase(Trim(modName)) Or InStr(1, LCase(Trim(modName)), LCase(Trim(tmpArr(0)))) <> 0) Then
-                isValidVal = True
-                'checks if module name includes value before the dot
-                If InStr(1, LCase(Trim(modName)), LCase(Trim(tmpArr(0)))) <> 0 Then
-                    'reassign modName variable with new string because exist situations when module name in 3 column is compaund value
-                    modName = Trim(tmpArr(0))
-                End If
-            End If
-        Else
-            isValidVal = IsNumeric(inVal)
-        End If
-    
+        isValidVal = IsNumeric(inVal)
     End If
 
 End Function
