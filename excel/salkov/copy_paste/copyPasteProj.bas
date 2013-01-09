@@ -8,6 +8,7 @@ Sub startNewCopyBtn_Click()
 End Sub
 
 Sub stub()
+    'not used in working variant but left for completeness
     Dim wbFrom As Workbook, wbTo As Workbook, colsFrom As Collection, colsTo As Collection, shtsCopy As Collection
     Dim fPath As String
     
@@ -22,11 +23,13 @@ Sub stub()
 End Sub
 
 Sub readMapFromFile(fPath As String)
+    'not used in working variant but left for completeness, but maybe will be used in next requirement
+    'if they want to choose column for copy by yourself, then you'll have to use this function
     Dim flw As New FileWorker
     Dim tmpString As String
     Dim tmpColl As Collection
     
-    If Dir(fPath) <> "" Then
+    If Dir(fPath) <> "" Then 'check if file exists
         
         Set tmpColl = flw.readLinesFromTxt(fPath) 'call to function that reads file line by line and returns its content like collection of lines
         '@todo maybe add comments clearing routines
@@ -101,15 +104,6 @@ Public Sub fillCols(inCol As Collection)
     Next Item
     
     Set shtsCopy = bulkAddToCol(shtsCopy, "Б_продаж", "БПСС", "Услуги_в_БПСС", "Прочие_в_БПСС", "БАР", "БРС", "БпДР_60_90", "БпДР_110_160")
-    
-    'shtsCopy.Add ("Б_продаж")
-    'shtsCopy.Add ("БПСС")
-    'shtsCopy.Add ("Услуги_в_БПСС")
-    'shtsCopy.Add ("Прочие_в_БПСС")
-    'shtsCopy.Add ("БАР")
-    'shtsCopy.Add ("БРС")
-    'shtsCopy.Add ("БпДР_60_90")
-    'shtsCopy.Add ("БпДР_110_160")
     
 End Sub
 
@@ -195,9 +189,6 @@ Private Function shtExist(ByVal shtName As String, wb As Workbook) As Boolean
     If Not tmpWSht Is Nothing Then
         shtExist = True
     End If
-    
-    
-    
     
 End Function
 
