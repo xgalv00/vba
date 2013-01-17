@@ -15,6 +15,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
+
 Private Sub cancelBtn_Click()
     Unload Me
 End Sub
@@ -61,6 +62,7 @@ Private Sub execBtn_Click()
     Dim flw As New FileWorker
     Dim wbFrom As Workbook, wbTo As Workbook
     Dim checkedVal As Integer
+    Dim tmpVal As String
     
     If perOpenOptBtn.value Then
         checkedVal = 1
@@ -74,10 +76,14 @@ Private Sub execBtn_Click()
         checkedVal = 5
     End If
     
-    Set wbFrom = Workbooks.Open(Label7.Caption, False) 'copy from wb is chosen by user. Label7.Caption stores path to open
     Set wbTo = ActiveWorkbook 'macro must copy to active workbook
+    tmpVal = Label7.Caption
+    Unload Me
+    'creates new excel application because of strange excel error (wbFrom have no variables otherwise)
+    Set xApp = New Application
+    xApp.Visible = True
+    Set wbFrom = xApp.Workbooks.Open(tmpVal, False) 'copy from wb is chosen by user. Label7.Caption stores path to open
     
     Call centralExecUnit(checkedVal, wbFrom, wbTo)
     
-    Unload Me
 End Sub
