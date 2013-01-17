@@ -1,6 +1,8 @@
 Attribute VB_Name = "Module2"
 Dim destWBook As Workbook, srcWBook As Workbook
 Dim srcColumn As Integer, compName As String
+Dim monthCol As New Collection
+
 Sub runCons()
 
     UserForm1.Show
@@ -12,10 +14,12 @@ Sub myLoader(srcWBookInput As Workbook, destWBookInput As Workbook)
 
     
     Dim destSht As Worksheet, srcSht As Worksheet
+    Dim tmpCell As Range, tmpCol As Integer, tmpRow As Integer, wRange As Range
     Dim monName As String, compCellAddr As String
     Dim curPageNum As Integer, tableFirstRow As Integer, tableEndCol As Integer, colForMonthSearch As Integer
-    Dim tmpCell As Range, tmpCol As Integer, monthCol As New Collection, tmpRow As Integer, wRange As Range
     Dim prevMonthCell As Range, valForFind As String
+    Dim tmpCompName As String
+    Dim tmpShtName As String
     
     UserForm1.Hide
     compCellAddr = "E4" 'cell where company name is stored through all workbooks
@@ -36,61 +40,74 @@ Sub myLoader(srcWBookInput As Workbook, destWBookInput As Workbook)
         Exit Sub
     End If
     On Error GoTo 0
-    curPageNum = 1
-    Do While (compName <> destWBook.Sheets(curPageNum).Range(compCellAddr).value) And (curPageNum < destWBook.Sheets.Count)
+    curPageNum = 0
+    Do While (compName <> tmpCompName) And (curPageNum < destWBook.Sheets.Count)
         curPageNum = curPageNum + 1
+        tmpCompName = destWBook.Sheets(curPageNum).Range(compCellAddr).value
+        tmpShtName = destWBook.Sheets(curPageNum).Name
+        'for DTEK TRADING LTD exclusion
+        If tmpShtName = "Ш 1 кв." Then
+            curPageNum = curPageNum + 5
+            tmpCompName = destWBook.Sheets(curPageNum).Range(compCellAddr).value
+        End If
     Loop
     
     'fork that halt sub if company name wasn't found
     If destWBook.Sheets(curPageNum).Range(compCellAddr).value = compName Then
         Set destSht = destWBook.Sheets(curPageNum)
         Set srcSht = srcWBook.Sheets("БДР")
-        tableFirstRow = 10
-        tmpCol = 1
-        srcSht.Activate
-        Set tmpCell = Cells(tableFirstRow, tmpCol)
-        tmpCell.Select 'test line
-        'find "Текущий квартал" cell
-        Do While Trim(tmpCell.value) <> "Текущий квартал"
-            tmpCol = tmpCol + 1
+        
+        If Not UserForm1.yearBPChkBox Then
+            tableFirstRow = 10
+            tmpCol = 1
+            srcSht.Activate
             Set tmpCell = Cells(tableFirstRow, tmpCol)
-            tmpCell.Select ' test line
-            
-            If Trim(tmpCell.value) = "Текущий квартал" Then
-                colForMonthSearch = tmpCell.Column
-                Exit Do
-            End If
-        Loop
-        tmpRow = tableFirstRow + 2 'add 2 because beetween current quater cell and month exists little row
-        Set tmpCell = Cells(tmpRow, colForMonthSearch)
-        lookForFirtsMonth = True
-        'loop while value from cell is a month
-        Do While isExistInCol(tmpCell.value, monthCol)
-            '@todo go to fork current plan or operative
-            srcSht.Activate
-            monName = tmpCell.value
-            Set prevMonthCell = tmpCell
-            Set wRange = srcSht.UsedRange
-            'here we check for what radiobutton is chosen
-            If UserForm1.opOBtn.value Then
-                valForFind = "ОП"
-                Set tmpCell = findApprCol(tmpCell, valForFind)
-                copyCol monName, tmpCell.Column, destSht, srcSht, wRange
-            ElseIf UserForm1.tpOBtn.value Then
-                valForFind = "ТП"
-                Set tmpCell = findApprCol(tmpCell, valForFind)
-                copyCol monName, tmpCell.Column, destSht, srcSht, wRange
-            ElseIf UserForm1.bpOptBtn.value Then
-                valForFind = "БП"
-                Set tmpCell = findApprCol(tmpCell, valForFind)
-                copyCol monName, tmpCell.Column, destSht, srcSht, wRange
-            End If
-            srcSht.Activate
-            Call createChessStat(monName)  'need to test, move to chess table creation
-            Set srcSht = srcWBook.Sheets("БДР")
-            srcSht.Activate
-            Set tmpCell = findNextMonth(prevMonthCell)
-        Loop
+            tmpCell.Select 'test line
+            'find "Текущий квартал" cell
+            Do While Trim(tmpCell.value) <> "Текущий квартал"
+                tmpCol = tmpCol + 1
+                Set tmpCell = Cells(tableFirstRow, tmpCol)
+                tmpCell.Select ' test line
+                
+                If Trim(tmpCell.value) = "Текущий квартал" Then
+                    colForMonthSearch = tmpCell.Column
+                    Exit Do
+                End If
+            Loop
+            tmpRow = tableFirstRow + 2 'add 2 because beetween current quater cell and month exists little row
+            Set tmpCell = Cells(tmpRow, colForMonthSearch)
+            lookForFirtsMonth = True
+            'loop while value from cell is a month
+            Do While isExistInCol(tmpCell.value, monthCol)
+                '@todo go to fork current plan or operative
+                srcSht.Activate
+                monName = LCase(Trim(tmpCell.value)) 'excludes errors in month comparisons
+                Set prevMonthCell = tmpCell
+                Set wRange = srcSht.UsedRange
+                'here we check for what radiobutton is chosen
+                If UserForm1.opOBtn.value Then
+                    valForFind = "ОП"
+                    Set tmpCell = findApprCol(tmpCell, valForFind)
+                    copyCol monName, tmpCell.Column, destSht, srcSht, wRange
+                ElseIf UserForm1.tpOBtn.value Then
+                    valForFind = "ТП"
+                    Set tmpCell = findApprCol(tmpCell, valForFind)
+                    copyCol monName, tmpCell.Column, destSht, srcSht, wRange
+                ElseIf UserForm1.bpOptBtn.value Then
+                    valForFind = "БП"
+                    Set tmpCell = findApprCol(tmpCell, valForFind)
+                    copyCol monName, tmpCell.Column, destSht, srcSht, wRange
+                End If
+                srcSht.Activate
+                Call createChessStat(monName)  'need to test, move to chess table creation
+                Set srcSht = srcWBook.Sheets("БДР")
+                srcSht.Activate
+                Set tmpCell = findNextMonth(prevMonthCell)
+            Loop
+        
+        Else
+            Call createYearBP(curPageNum)
+        End If
         
         Application.StatusBar = False
         If UserForm1.CheckBox1.value = True Then
@@ -102,6 +119,38 @@ Sub myLoader(srcWBookInput As Workbook, destWBookInput As Workbook)
     End If
 
 End Sub
+Private Function createYearBP(destPageNum As Integer)
+    
+    Dim clw As New CellWorker, flw As New FileWorker
+    Dim destSht As Worksheet, srcSht As Worksheet
+    Dim tmpCell As Range, tmpCol As Integer, tmpRow As Integer, wRange As Range
+
+    
+    Set destSht = destWBook.Sheets(destPageNum)
+    Set srcSht = srcWBook.Sheets("БДР")
+    srcSht.Activate
+    tmpRow = 12 'add 2 because beetween current quater cell and month exists little row
+    Set tmpCell = Cells(tmpRow, 1)
+    Set wRange = ActiveSheet.UsedRange
+    
+    Do While tmpCell.Column < (wRange.Column + wRange.Columns.Count)
+    
+        Set tmpCell = clw.move_right(tmpCell)
+        If isExistInCol(tmpCell.value, monthCol) Then
+        
+            copyCol tmpCell.value, tmpCell.Column, destSht, srcSht, wRange
+            srcSht.Activate
+            Call createChessStat(tmpCell.value)  'need to test, move to chess table creation
+            Set srcSht = srcWBook.Sheets("БДР")
+            srcSht.Activate
+            
+        End If
+    
+    Loop
+
+
+End Function
+
 Private Function findApprCol(tmpCell As Range, valForFind As String) As Range
     'choose appropriate column for insertion
     Dim tmpCol As Integer, tmpRow As Integer
@@ -146,8 +195,9 @@ Private Function isExistInCol(itemVal As String, colForSearch As Collection) As 
     'loop through given collection and if meet given value return true
     Dim resBool As Boolean
     resBool = False
+    itemVal = LCase(Trim(itemVal))
     For Each Item In colForSearch
-        If itemVal = Item Then
+        If itemVal = LCase(Trim(Item)) Then
             resBool = True
             Exit For
         End If
@@ -170,11 +220,11 @@ Private Sub copyCol(monName As String, colVal As Integer, destSht As Worksheet, 
     destSht.Activate
     Set tmpCell = Cells(tmpRow, tmpCol)
     tmpCell.Select
-    Do While tmpCell.value <> monName
+    Do While LCase(Trim(tmpCell.value)) <> monName
         tmpCol = tmpCol + 1
         Set tmpCell = Cells(tmpRow, tmpCol)
         tmpCell.Select 'test line
-        If tmpCell.value = monName Then
+        If LCase(Trim(tmpCell.value)) = monName Then
             destCol = tmpCell.Column
         End If
     Loop
@@ -205,8 +255,10 @@ Sub createChessStat(monName As String)
     
     If UserForm1.groutOptBtn.value Then
         Set srcSht = srcWBook.Sheets("СводФ2_Г")
-    Else
+    ElseIf UserForm1.blockOptBtn.value Then
         Set srcSht = srcWBook.Sheets("СводФ2_Б")
+    Else
+        Set srcSht = srcWBook.Sheets("СводФ2_Сегмент")
     End If
     srcSht.Activate
     
@@ -254,7 +306,7 @@ Sub createChessStat(monName As String)
     Loop
     
     'initialize appropriate destination sheet
-    Select Case LCase(monName)
+    Select Case monName
         
     Case "январь", "февраль", "март"
         Set destSht = destWBook.Worksheets("Ш 1 кв.")
@@ -294,7 +346,7 @@ Sub createChessStat(monName As String)
     Do While tmpColumn < destSht.UsedRange.Rows.CountLarge
         i = i + 1
         Set tmpCell = revenueCell.Offset(0, i)
-        If tmpCell.value = monName Then
+        If LCase(Trim(tmpCell.value)) = monName Then
             colForIns = tmpCell.Column
             Exit Do
         End If

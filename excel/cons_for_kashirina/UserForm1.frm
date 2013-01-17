@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm1 
    Caption         =   "Выберите файлы для загрузки данных"
-   ClientHeight    =   4125
+   ClientHeight    =   4740
    ClientLeft      =   45
    ClientTop       =   435
-   ClientWidth     =   7470
+   ClientWidth     =   7530
    OleObjectBlob   =   "UserForm1.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -81,3 +81,20 @@ Private Sub helpBtn_Click()
             "3. Потом, если хотите закрыть все файлы предприятий, ставите соответствующую галочку."
     MsgBox helpMsg, Title:="Краткая инструкция"
 End Sub
+
+
+
+Private Sub yearBPChkBox_Change()
+
+    If yearBPChkBox Then
+        tpOBtn.Enabled = False
+        opOBtn.Enabled = False
+        bpOptBtn.Enabled = False
+    Else
+        tpOBtn.Enabled = True
+        opOBtn.Enabled = True
+        bpOptBtn.Enabled = True
+    End If
+
+End Sub
+
