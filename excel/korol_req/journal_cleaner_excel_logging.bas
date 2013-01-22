@@ -10,6 +10,7 @@ Sub journalCleaning()
     Dim tmpRow As Integer, tmpCol As Integer, tmpCell As Range, tmpStr As String, foundCell As Range 'helper variables
     Dim clw As New CellWorker, flw As New FileWorker
     Dim devCode As String, chanCode As String, modName As String, developerName As String
+    Dim devJournName As String, chanJournName As String, shPPath As String
     Dim devCodeCol As Integer, chanCodeCol As Integer
     Dim chkModNameToo As Boolean
     Dim tmpArray As Variant
@@ -26,14 +27,31 @@ Sub journalCleaning()
     
     desktopPath = desktopPath & "\Desktop\"
     
+    
+    shPPath = "https://workspaces.dtek.com/it/oisup/ProjectSAP/ChangeManagement/"
+    devJournName = "test_dev.xlsm"
+    chanJournName = "test.xlsm"
+    
+    'check if change journal can be checked out
+    If Workbooks.CanCheckOut(shPPath & chanJournName) = False Then
+        MsgBox "You are unable to check out this document at this time. Please try again later."
+    End If
+    
+    'need to test
+    If Workbooks.CanCheckOut(shPPath & devJournName) = True Then
+        Workbooks.CheckOut shPPath & devJournName
+    End If
     'logging
     Set resWBook = Workbooks.Add
     resWBook.SaveAs desktopPath & "Результат_обработки_журналов.xlsx", 51
     
     
+    Workbooks.CheckOut shPPath & chanJournName
     
-    Set chanJour = Workbooks("Журнал регистрации изменений в проектах SAP.xlsm")
-    Set devJour = Workbooks("журнал разработок_new.xlsm")
+    
+    
+    Set chanJour = Workbooks.Open(shPPath & chanJournName, , False)
+    Set devJour = Workbooks(shPPath & devJournName)
     Set devWSht = devJour.Sheets(1)
     Set chanWSht = chanJour.Sheets("журнал запросов на измение")
     chanCodeCol = 2
