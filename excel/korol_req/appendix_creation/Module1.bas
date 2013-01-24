@@ -6,6 +6,7 @@ Sub writeReport()
     Dim folPath As String
     Dim fName As String
     
+    folPath = "C:\Users\GalkinVa\Desktop\all_forms\œ–Œ¬≈– »\"
     fName = Dir(folPath)
     writeReportName fName, folPath
 
@@ -33,11 +34,12 @@ Public Sub setBooks(fName As String, folName As String)
 End Sub
 
 Public Sub addRecord()
-
+    '"for_appendix.xlsm"
+    
     rowToIns = curWSht.UsedRange.Rows.Count + curWSht.UsedRange.Row
     curWSht.Cells(rowToIns, 1).value = folForWrite
     curWSht.Cells(rowToIns, 2).value = curForm
-    curWSht.Cells(rowToIns, 3).value = rangeValLbl.Caption
+    curWSht.Cells(rowToIns, 3).value = UserForm1.rangeValLbl.Caption
     ActiveWorkbook.Close False
     Kill folForWrite & curForm
     Application.EnableEvents = True
