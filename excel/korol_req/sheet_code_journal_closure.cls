@@ -14,15 +14,16 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     Dim validVal As Boolean
     Dim isFree As Boolean
     Dim valForChange As String
+    Dim tmpArray As Variant
     
     
     'targIsClear = False
     If Target.Column = 2 Then
         'if change code added
         'modName = Cells(Target.Row, Target.Column + 1).value
-        validVal = journal_closure.isValidVal(Target.value)
+        'validVal = journal_closure.isValidVal(Target.value)
         
-        If Not validVal Then
+        If Not IsNumeric(Target.value) Then
         '    valForChange = Cells(Target.Row, Target.Column + 2).value
         '    journal_closure.UseCanCheckOut Target.value, modName, valForChange
         'Else
@@ -30,10 +31,11 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                 'maybe add some reaction on empty value
                 'Debug.Print "some"
             'Else
-                MsgBox "Value that you have entered is incorrect. Correct format is change number only (e.g. 101)"
+                MsgBox "Value you have entered is incorrect. Correct format is change number only (e.g. 101)"
                 Application.EnableEvents = False
                 Target.value = ""
                 Application.EnableEvents = True
+                Target.Activate
             'End If
         End If
         
@@ -50,13 +52,43 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     If Target.Column = 4 Then
         'if change code added
         modName = Cells(Target.Row, Target.Column - 1).value
-        validVal = journal_closure.isValidDevName(Target.value, modName)
-        
-        If Not validVal Then
-            MsgBox "Value that you have entered is incorrect. Correct format is module.dev number (e.g. MM.101)"
+        If modName <> "" Then
+            'validVal = journal_closure.isValidDevName(Target.value, modName)
+            If Target.value <> "" Then
+                'must contain dot.  must contain correct module name.
+                'needs cleaning and preparing before validation
+                Application.EnableEvents = False
+                Target.value = journal_closure.remRusLetters(UCase(Trim(Target.value)))
+                Cells(Target.Row, Target.Column - 1).value = journal_closure.remRusLetters(UCase(Trim(modName)))
+                Application.EnableEvents = True
+                
+                'must contain dot
+                If InStr(1, Target.value, ".") <> 0 Then
+                    tmpArray = Split(Target.value, ".")
+                    'letters before dot should be at least part of module name
+                    If InStr(1, modName, tmpArray(0)) <> 0 Then
+                        'second part should be number
+                        If IsNumeric(tmpArray(1)) Then
+                            validVal = True
+                        End If
+                    End If
+                End If
+            End If
+        Else
+            MsgBox "You must enter module name first"
             Application.EnableEvents = False
             Target.value = ""
             Application.EnableEvents = True
+            Cells(Target.Row, Target.Column - 1).Activate
+            Exit Sub
+        End If
+        
+        If Not validVal Then
+            MsgBox "Value you have entered is incorrect. Correct format is module.dev number (e.g. MM.101)"
+            Application.EnableEvents = False
+            Target.value = ""
+            Application.EnableEvents = True
+            Target.Activate
         End If
         
     End If

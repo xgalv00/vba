@@ -70,51 +70,19 @@ Sub UseCanCheckOut(targetVal As String, modName As String, valForChange As Strin
 
 End Sub
 
-Function isValidVal(inVal As String) As Boolean
-    
-    If inVal <> "" Then
-        isValidVal = IsNumeric(inVal)
-    End If
-
-End Function
-
-Function isValidDevName(inVal As String, modName As String) As Boolean
-    Dim tmpArray As Variant
-
-    If inVal <> "" Then
-        'must contain dot.  must contain correct module name.
-        'needs cleaning and preparing before validation
-        inVal = remRusLetters(UCase(Trim(inVal)))
-        modName = remRusLetters(UCase(Trim(modName)))
-        
-        'must contain dot
-        If InStr(0, inVal, ".") <> 0 Then
-            tmpArray = Split(inVal, ".")
-            'letters before dot should be at least part of module name
-            If InStr(0, modName, tmpArray(0)) <> 0 Then
-                'second part should be number
-                If IsNumeric(tmpArray(1)) Then
-                    isValidDevName = True
-                End If
-            End If
-        End If
-        
-    End If
-
-End Function
-
 Function remRusLetters(valForClean As String) As String
     
     Dim i As Integer, rusLetters As Variant, engLetters As Variant
     Dim cleanedVal As String
+    Dim tmpStr As String
     
     cleanedVal = valForClean
     rusLetters = Array("À", "Â", "Ñ", "Å", "Í", "Ê", "Ì", "Î", "Ð", "Ò", "Õ", "Ó")
     engLetters = Array("A", "B", "C", "E", "H", "K", "M", "O", "P", "T", "X", "Y")
     
     For i = 0 To UBound(rusLetters)
-    
-        If InStr(0, valForClean, rusLetters(i)) <> 0 Then
+
+        If InStr(1, valForClean, rusLetters(i)) <> 0 Then
             cleanedVal = Replace(valForClean, rusLetters(i), engLetters(i))
         End If
     
