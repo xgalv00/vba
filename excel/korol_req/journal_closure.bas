@@ -90,8 +90,12 @@ Function isValidDevName(inVal As String, modName As String) As Boolean
         'must contain dot
         If InStr(0, inVal, ".") <> 0 Then
             tmpArray = Split(inVal, ".")
+            'letters before dot should be at least part of module name
             If InStr(0, modName, tmpArray(0)) <> 0 Then
-                isValidDevName = True
+                'second part should be number
+                If IsNumeric(tmpArray(1)) Then
+                    isValidDevName = True
+                End If
             End If
         End If
         

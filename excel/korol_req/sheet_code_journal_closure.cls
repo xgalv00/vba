@@ -19,34 +19,31 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     'targIsClear = False
     If Target.Column = 2 Then
         'if change code added
-        modName = Cells(Target.Row, Target.Column + 1).value
+        'modName = Cells(Target.Row, Target.Column + 1).value
         validVal = journal_closure.isValidVal(Target.value)
         
-        If validVal Then
-            valForChange = Cells(Target.Row, Target.Column + 2).value
-            journal_closure.UseCanCheckOut Target.value, modName, valForChange
-        Else
-            If Target.value = "" Then
+        If Not validVal Then
+        '    valForChange = Cells(Target.Row, Target.Column + 2).value
+        '    journal_closure.UseCanCheckOut Target.value, modName, valForChange
+        'Else
+            'If Target.value = "" Then
                 'maybe add some reaction on empty value
                 'Debug.Print "some"
-            Else
+            'Else
                 MsgBox "Value that you have entered is incorrect. Correct format is change number only (e.g. 101)"
                 Application.EnableEvents = False
                 Target.value = ""
                 Application.EnableEvents = True
-            End If
-
-
-            
+            'End If
         End If
         
         'check if target needs to be cleared when non-existent value was entered
-        If targNeedClear Then
-            Application.EnableEvents = False
-            Target.value = ""
-            Application.EnableEvents = True
-            targNeedClear = False
-        End If
+        'If targNeedClear Then
+        '    Application.EnableEvents = False
+        '    Target.value = ""
+        '    Application.EnableEvents = True
+        '    targNeedClear = False
+        'End If
     
     End If
     
@@ -56,10 +53,10 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         validVal = journal_closure.isValidDevName(Target.value, modName)
         
         If Not validVal Then
-                MsgBox "Value that you have entered is incorrect. Correct format is module.dev number (e.g. MM.101)"
-                Application.EnableEvents = False
-                Target.value = ""
-                Application.EnableEvents = True
+            MsgBox "Value that you have entered is incorrect. Correct format is module.dev number (e.g. MM.101)"
+            Application.EnableEvents = False
+            Target.value = ""
+            Application.EnableEvents = True
         End If
         
     End If

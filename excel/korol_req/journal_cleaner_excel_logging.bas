@@ -33,25 +33,30 @@ Sub journalCleaning()
     chanJournName = "test.xlsm"
     
     'check if change journal can be checked out
-    If Workbooks.CanCheckOut(shPPath & chanJournName) = False Then
-        MsgBox "You are unable to check out this document at this time. Please try again later."
-    End If
+    'If Workbooks.CanCheckOut(shPPath & chanJournName) = False Then
+    '    MsgBox "You are unable to check out this document at this time. Please try again later."
+    'End If
     
     'need to test
-    If Workbooks.CanCheckOut(shPPath & devJournName) = True Then
-        Workbooks.CheckOut shPPath & devJournName
-    End If
+    'If Workbooks.CanCheckOut(shPPath & devJournName) = True Then
+    '   Workbooks.CheckOut shPPath & devJournName
+    'End If
     'logging
     Set resWBook = Workbooks.Add
     resWBook.SaveAs desktopPath & "Результат_обработки_журналов.xlsx", 51
     
     
-    Workbooks.CheckOut shPPath & chanJournName
+    'Workbooks.CheckOut shPPath & chanJournName
     
     
-    
-    Set chanJour = Workbooks.Open(shPPath & chanJournName, , False)
-    Set devJour = Workbooks(shPPath & devJournName)
+    On Error Resume Next
+    Set chanJour = Workbooks(chanJournName)
+    If Err.Number <> 0 Then
+        MsgBox "You must open and check out change journal first"
+        Exit Sub
+    End If
+    On Error GoTo 0
+    Set devJour = Workbooks(devJournName)
     Set devWSht = devJour.Sheets(1)
     Set chanWSht = chanJour.Sheets("журнал запросов на измение")
     chanCodeCol = 2
