@@ -13,40 +13,17 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Dim curWSht As Worksheet, tmpWSht As Worksheet
-Dim curForm As String, folForWrite As String
-Public flagEnd As Boolean
-
 
 Private Sub refreshBtn_Click()
     rangeValLbl.Caption = ActiveCell.value
-End Sub
-
-Public Sub setBooks(fName As String, folName As String)
-    Dim curWB As Workbook, tmpWB As Workbook
-    
-    curForm = fName
-    folForWrite = folName
-    Set curWB = ActiveWorkbook
-    Application.EnableEvents = False
-    Set tmpWB = Workbooks.Open(folForWrite & curForm)
-    'tmpWB.Unprotect "sap"
-    Set curWSht = curWB.Sheets(1)
-    Set tmpWSht = tmpWB.Sheets(1)
-    tmpWSht.Activate
-    
 End Sub
 
 
 Private Sub writeBtn_Click()
     Dim rowToIns As Integer
     
-    rowToIns = curWSht.UsedRange.Rows.Count + curWSht.UsedRange.Row
-    curWSht.Cells(rowToIns, 1).value = folForWrite
-    curWSht.Cells(rowToIns, 2).value = curForm
-    curWSht.Cells(rowToIns, 3).value = rangeValLbl.Caption
-    ActiveWorkbook.Close False
-    Application.EnableEvents = True
-    flagEnd = True
-    'Unload Me
+    Module1.addRecord
+    Unload Me
+    Module1.writeReport
 End Sub
+
