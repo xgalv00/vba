@@ -28,9 +28,9 @@ Sub journalCleaning()
     desktopPath = desktopPath & "\Desktop\"
     
     
-    shPPath = "https://workspaces.dtek.com/it/oisup/ProjectSAP/ChangeManagement/"
-    devJournName = "test_dev.xlsm"
-    chanJournName = "test.xlsm"
+    'shPPath = "https://workspaces.dtek.com/it/oisup/ProjectSAP/ChangeManagement/"
+    devJournName = "журнал разработок.xlsm"
+    chanJournName = "Журнал регистрации изменений в проектах SAP.xlsm"
     
     'check if change journal can be checked out
     'If Workbooks.CanCheckOut(shPPath & chanJournName) = False Then
@@ -429,6 +429,98 @@ Private Sub txtCleaning(rangeForClean As Range)
             Set foundCell = Selection.FindNext(After:=ActiveCell)
         Loop
     Next i
+
+End Sub
+
+Sub excludeDefects()
+    Dim tmpRow As Integer, chanCodeCol As Integer, devCodeCol As Integer, modNameCol As Integer
+    Dim clw As New CellWorker
+    Dim tmpCell As Range
+    Dim devCode As String, chanCode As String, modName As String
+    
+    chanCodeCol = 2
+    modNameCol = 3
+    devCodeCol = 4
+    devNameCol = 41
+    
+    devWSht.Activate
+    tmpRow = 3
+    Set tmpCell = Cells(tmpRow, devCodeCol)
+    Do While tmpCell.value <> "" And Cells(tmpCell.Row, modNameCol).value <> ""
+        If tmpCell.value = "" Then
+            'add comment and highlight this row
+            
+        Else
+            'check format of dev code
+            devCode = tmpCell.value
+            modName = Cells(tmpCell.Row, modNameCol).value
+            If InStr(1, devCode, ".") <> 0 Then
+                tmpArray = Split(devCode, ".")
+                'letters before dot should be at least part of module name
+                If InStr(1, modName, tmpArray(0)) <> 0 Then
+                    'second part should be number
+                    If IsNumeric(tmpArray(1)) Then
+                        validVal = True
+                    End If
+                End If
+            End If
+            If Not validVal Then
+                'add comment and highlight this row
+            End If
+            
+            chanCode = Cells(tmpCell.Row, chanCodeCol).value
+            'check format of change code
+            If Not chanCode = "" Then
+                If Not IsNumeric(chanCode) Then
+                    'add comment and highlight this row
+                End If
+            End If
+        End If
+        chanCode = ""
+        devCode = ""
+        modName = ""
+        Set tmpCell = clw.move_down(tmpCell)
+    Loop
+    
+    chanWSht.Activate
+    tmpRow = 4
+    Set tmpCell = Cells(tmpRow, chanCodeCol)
+    Do While tmpCell.value <> "" And Cells(tmpCell.Row, modNameCol).value <> ""
+        If tmpCell.value = "" Then
+            'add comment and highlight this row
+            
+        Else
+            'check format of dev code
+            
+            devCode = Cells(tmpCell.Row, devCodeCol).value
+            modName = Cells(tmpCell.Row, modNameCol).value
+            If InStr(1, devCode, ".") <> 0 Then
+                tmpArray = Split(devCode, ".")
+                'letters before dot should be at least part of module name
+                If InStr(1, modName, tmpArray(0)) <> 0 Then
+                    'second part should be number
+                    If IsNumeric(tmpArray(1)) Then
+                        validVal = True
+                    End If
+                End If
+            End If
+            If Not validVal Then
+                'add comment and highlight this row
+            End If
+            
+            chanCode = tmpCell.value
+            'check format of change code
+            If Not chanCode = "" Then
+                If Not IsNumeric(chanCode) Then
+                    'add comment and highlight this row
+                End If
+            End If
+        End If
+        chanCode = ""
+        devCode = ""
+        modName = ""
+        Set tmpCell = clw.move_down(tmpCell)
+    Loop
 
 End Sub
 
