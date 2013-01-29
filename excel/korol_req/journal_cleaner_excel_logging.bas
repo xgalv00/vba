@@ -10,8 +10,8 @@ Sub journalCleaning()
     Dim tmpRow As Integer, tmpCol As Integer, tmpCell As Range, tmpStr As String, foundCell As Range 'helper variables
     Dim clw As New CellWorker, flw As New FileWorker
     Dim devCode As String, chanCode As String, modName As String, developerName As String
-    Dim devJournName As String, chanJournName As String, shPPath As String
-    Dim devCodeCol As Integer, chanCodeCol As Integer
+    Dim devJournName As String, chanJournName As String
+    Dim tmpRow As Integer, chanCodeCol As Integer, devCodeCol As Integer, modNameCol As Integer
     Dim chkModNameToo As Boolean
     Dim tmpArray As Variant
     Dim xmlName As String, desktopPath As String, rootTagName As String
@@ -449,7 +449,7 @@ Sub excludeDefects()
     Do While tmpCell.value <> "" And Cells(tmpCell.Row, modNameCol).value <> ""
         If tmpCell.value = "" Then
             'add comment and highlight this row
-            
+            Call logError(tmpCell, "Отсутствует номер разработки")
         Else
             'check format of dev code
             devCode = tmpCell.value
@@ -466,6 +466,7 @@ Sub excludeDefects()
             End If
             If Not validVal Then
                 'add comment and highlight this row
+                Call logError(tmpCell, "Некорректный формат. Правильный формат модуль.номер разработки (например ММ.101)")
             End If
             
             chanCode = Cells(tmpCell.Row, chanCodeCol).value
@@ -473,6 +474,7 @@ Sub excludeDefects()
             If Not chanCode = "" Then
                 If Not IsNumeric(chanCode) Then
                     'add comment and highlight this row
+                    Call logError(Cells(tmpCell.Row, chanCodeCol), "Некорректный формат. Правильный формат - номер изменения (например 100)")
                 End If
             End If
         End If
@@ -488,7 +490,7 @@ Sub excludeDefects()
     Do While tmpCell.value <> "" And Cells(tmpCell.Row, modNameCol).value <> ""
         If tmpCell.value = "" Then
             'add comment and highlight this row
-            
+            Call logError(tmpCell, "Отсутствует номер изменения")
         Else
             'check format of dev code
             
@@ -506,6 +508,7 @@ Sub excludeDefects()
             End If
             If Not validVal Then
                 'add comment and highlight this row
+                Call logError(Cells(tmpCell.Row, devCodeCol), "Некорректный формат. Правильный формат модуль.номер разработки (например ММ.101)")
             End If
             
             chanCode = tmpCell.value
@@ -513,6 +516,7 @@ Sub excludeDefects()
             If Not chanCode = "" Then
                 If Not IsNumeric(chanCode) Then
                     'add comment and highlight this row
+                    Call logError(tmpCell, "Некорректный формат. Правильный формат - номер изменения (например 100)")
                 End If
             End If
         End If
@@ -522,5 +526,15 @@ Sub excludeDefects()
         Set tmpCell = clw.move_down(tmpCell)
     Loop
 
+End Sub
+
+Sub logError(inCell As Range, comErr As String)
+
+    inCell.AddComment
+    inCell.Comment.Visible = False
+    inCell.Comment.Text Text:=comErr
+    Rows(inCell.Row).Select
+    Selection.Interior.Color = 16776960
+    
 End Sub
 
