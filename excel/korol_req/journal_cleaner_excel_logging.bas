@@ -165,7 +165,8 @@ Sub journalCleaning()
         modNameChan = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
         devCodeChan = LCase(Trim(Cells(tmpCell.Row, devCodeCol).value))
         developerName = Cells(tmpCell.Row, devNameCol).value
-
+        
+        'skip rows that are not well-formed
         If tmpCell.Interior.Color <> 16776960 Then
         
             If devCodeChan <> "" Then
@@ -307,14 +308,15 @@ Sub excludeDefects()
     devWSht.Activate
     tmpRow = 3
     Set tmpCell = Cells(tmpRow, devCodeCol)
-    Do While tmpCell.value <> "" And Cells(tmpCell.Row, modNameCol).value <> ""
+    
+    Do While tmpCell.value <> "" Or Cells(tmpCell.Row, modNameCol).value <> "" Or Cells(tmpCell.Row + 1, modNameCol).value <> ""
         If tmpCell.value = "" Then
             'add comment and highlight this row
             Call logError(tmpCell, "Отсутствует номер разработки")
         Else
             'check format of dev code
-            devCode = tmpCell.value
-            modName = Cells(tmpCell.Row, modNameCol).value
+            devCode = LCase(Trim(tmpCell.value))
+            modName = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
             If InStr(1, devCode, ".") <> 0 Then
                 tmpArray = Split(devCode, ".")
                 'letters before dot should be at least part of module name
@@ -330,8 +332,9 @@ Sub excludeDefects()
                 Call logError(tmpCell, "Некорректный формат. Правильный формат модуль.номер разработки (например ММ.101)")
             End If
             
-            chanCode = Cells(tmpCell.Row, chanCodeCol).value
+            chanCode = Trim(Cells(tmpCell.Row, chanCodeCol).value)
             'check format of change code
+            'change code can be omitted here
             If Not chanCode = "" Then
                 If Not IsNumeric(chanCode) Then
                     'add comment and highlight this row
@@ -342,59 +345,65 @@ Sub excludeDefects()
         chanCode = ""
         devCode = ""
         modName = ""
+        validVal = False
         Set tmpCell = clw.move_down(tmpCell)
     Loop
     
     chanWSht.Activate
     tmpRow = 4
     Set tmpCell = Cells(tmpRow, chanCodeCol)
-    Do While tmpCell.value <> "" And Cells(tmpCell.Row, modNameCol).value <> ""
+    
+    Do While tmpCell.value <> "" Or Cells(tmpCell.Row, modNameCol).value <> ""
         If tmpCell.value = "" Then
             'add comment and highlight this row
             Call logError(tmpCell, "Отсутствует номер изменения")
         Else
             'check format of dev code
             
-            devCode = Cells(tmpCell.Row, devCodeCol).value
-            modName = Cells(tmpCell.Row, modNameCol).value
-            If InStr(1, devCode, ".") <> 0 Then
-                tmpArray = Split(devCode, ".")
-                'letters before dot should be at least part of module name
-                If InStr(1, modName, tmpArray(0)) <> 0 Then
-                    'second part should be number
-                    If IsNumeric(tmpArray(1)) Then
-                        validVal = True
+            devCode = LCase(Trim(Cells(tmpCell.Row, devCodeCol).value))
+            modName = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
+            'in this iteration dev code can be omitted
+            If Not devCode = "" Then
+                If InStr(1, devCode, ".") <> 0 Then
+                    tmpArray = Split(devCode, ".")
+                    'letters before dot should be at least part of module name
+                    If InStr(1, modName, tmpArray(0)) <> 0 Then
+                        'second part should be number
+                        If IsNumeric(tmpArray(1)) Then
+                            validVal = True
+                        End If
                     End If
                 End If
-            End If
-            If Not validVal Then
-                'add comment and highlight this row
-                Call logError(Cells(tmpCell.Row, devCodeCol), "Некорректный формат. Правильный формат модуль.номер разработки (например ММ.101)")
+            
+                If Not validVal Then
+                    'add comment and highlight this row
+                    Call logError(Cells(tmpCell.Row, devCodeCol), "Некорректный формат. Правильный формат модуль.номер разработки (например ММ.101)")
+                End If
             End If
             
-            chanCode = tmpCell.value
+            chanCode = Trim(Cells(tmpCell.Row, chanCodeCol).value)
             'check format of change code
-            If Not chanCode = "" Then
-                If Not IsNumeric(chanCode) Then
-                    'add comment and highlight this row
-                    Call logError(tmpCell, "Некорректный формат. Правильный формат - номер изменения (например 100)")
-                End If
+            If Not IsNumeric(chanCode) Then
+                'add comment and highlight this row
+                Call logError(tmpCell, "Некорректный формат. Правильный формат - номер изменения (например 100)")
             End If
         End If
         chanCode = ""
         devCode = ""
         modName = ""
+        validVal = False
         Set tmpCell = clw.move_down(tmpCell)
     Loop
 
 End Sub
 
-Sub logError(inCell As Range, comErr As String, Optional colorCellOnly As Boolean, Optional fillColor As Integer)
+Sub logError(inCell As Range, comErr As String, Optional colorCellOnly As Boolean, Optional fillColor As Long)
     'function for logging
     
     If fillColor = 0 Then
         fillColor = 16776960
     End If
+    
     
     inCell.AddComment
     inCell.Comment.Visible = False
