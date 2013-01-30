@@ -43,7 +43,7 @@ Sub journalCleaning()
     
     
     Call replRusByEng
-    
+    'excludes defective rows from processing by changing row color
     Call excludeDefects
     
 '$$$
@@ -61,7 +61,7 @@ Sub journalCleaning()
     Do While devWSht.UsedRange.Rows.CountLarge + 5 > tmpCell.Row
         
         'skip rows that are not well-formed
-        If tmpCell.Interior.Color <> 16776960 Then
+        If tmpCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
             chanCodeDev = Trim(Cells(tmpCell.Row, chanCodeCol).value)
             modNameDev = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
             devCodeDev = LCase(Trim(tmpCell.value))
@@ -100,7 +100,7 @@ Sub journalCleaning()
                     chanWSht.Activate
                 
                 Else
-                    If foundCell.Interior.Color <> 16776960 Then
+                    If foundCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
                         foundCell.Select
                         chanCodeChan = Trim(Cells(foundCell.Row, chanCodeCol).value)
                         modNameChan = LCase(Trim(Cells(foundCell.Row, modNameCol).value))
@@ -167,7 +167,7 @@ Sub journalCleaning()
         developerName = Cells(tmpCell.Row, devNameCol).value
         
         'skip rows that are not well-formed
-        If tmpCell.Interior.Color <> 16776960 Then
+        If tmpCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
         
             If devCodeChan <> "" Then
                 
@@ -188,7 +188,7 @@ Sub journalCleaning()
                     devCodeDev = LCase(Trim(Cells(foundCell.Row, devCodeCol).value))
                     
                     'check if found cell is not excluded
-                    If foundCell.Interior.Color <> 16776960 Then
+                    If foundCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
                         If Not chanCodeDev = "" Then
                             prevVal = chanCodeDev
                             'if previous and new values of dev codes match do nothing
@@ -295,10 +295,13 @@ Private Sub txtCleaning(rangeForClean As Range)
 End Sub
 
 Sub excludeDefects()
+    '@todo refactor this function
+    '@todo add color back function
     Dim tmpRow As Integer, chanCodeCol As Integer, devCodeCol As Integer, modNameCol As Integer
     Dim clw As New CellWorker
     Dim tmpCell As Range
     Dim devCode As String, chanCode As String, modName As String
+    Dim validVal As Boolean
     
     chanCodeCol = 2
     modNameCol = 3
@@ -317,16 +320,8 @@ Sub excludeDefects()
             'check format of dev code
             devCode = LCase(Trim(tmpCell.value))
             modName = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
-            If InStr(1, devCode, ".") <> 0 Then
-                tmpArray = Split(devCode, ".")
-                'letters before dot should be at least part of module name
-                If InStr(1, modName, tmpArray(0)) <> 0 Then
-                    'second part should be number
-                    If IsNumeric(tmpArray(1)) Then
-                        validVal = True
-                    End If
-                End If
-            End If
+            validVal = validateDevCodes(devCode, modName)
+            
             If Not validVal Then
                 'add comment and highlight this row
                 Call logError(tmpCell, "Некорректный формат. Правильный формат модуль.номер разработки (например ММ.101)")
@@ -342,10 +337,6 @@ Sub excludeDefects()
                 End If
             End If
         End If
-        chanCode = ""
-        devCode = ""
-        modName = ""
-        validVal = False
         Set tmpCell = clw.move_down(tmpCell)
     Loop
     
@@ -364,16 +355,7 @@ Sub excludeDefects()
             modName = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
             'in this iteration dev code can be omitted
             If Not devCode = "" Then
-                If InStr(1, devCode, ".") <> 0 Then
-                    tmpArray = Split(devCode, ".")
-                    'letters before dot should be at least part of module name
-                    If InStr(1, modName, tmpArray(0)) <> 0 Then
-                        'second part should be number
-                        If IsNumeric(tmpArray(1)) Then
-                            validVal = True
-                        End If
-                    End If
-                End If
+                validVal = validateDevCodes(devCode, modName)
             
                 If Not validVal Then
                     'add comment and highlight this row
@@ -388,10 +370,6 @@ Sub excludeDefects()
                 Call logError(tmpCell, "Некорректный формат. Правильный формат - номер изменения (например 100)")
             End If
         End If
-        chanCode = ""
-        devCode = ""
-        modName = ""
-        validVal = False
         Set tmpCell = clw.move_down(tmpCell)
     Loop
 
@@ -404,11 +382,12 @@ Sub logError(inCell As Range, comErr As String, Optional colorCellOnly As Boolea
         fillColor = 16776960
     End If
     
-    
     inCell.AddComment
     inCell.Comment.Visible = False
     inCell.Comment.Text Text:=comErr
     If colorCellOnly Then
+        'add here format cleaning
+        inCell.ClearFormats
         inCell.Interior.Color = fillColor
     Else
         Rows(inCell.Row).Select
@@ -417,3 +396,31 @@ Sub logError(inCell As Range, comErr As String, Optional colorCellOnly As Boolea
     
 End Sub
 
+Sub fixColors(inCell As Range)
+    'makes cell format like nearby cell
+    Cells(inCell.Row, inCell.Column + 1).Select
+    Selection.Copy
+    inCell.Select
+    Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+        SkipBlanks:=False, Transpose:=False
+    Application.CutCopyMode = False
+
+End Sub
+
+Function validateDevCodes(devCode As String, modName As String) As Boolean
+    Dim tmpArray As Variant
+    Dim validVal As Boolean
+    
+    If InStr(1, devCode, ".") <> 0 Then
+        tmpArray = Split(devCode, ".")
+        'letters before dot should be at least part of module name
+        If InStr(1, modName, tmpArray(0)) <> 0 Then
+            'second part should be number
+            If IsNumeric(tmpArray(1)) Then
+                validVal = True
+            End If
+        End If
+    End If
+    
+    validateDevCodes = validVal
+End Function
