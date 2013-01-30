@@ -18,6 +18,7 @@ Sub journalCleaning()
     Dim prevVal As String
     Dim firstFoundCell As String
     
+    
     Application.EnableEvents = False
     
     
@@ -63,8 +64,8 @@ Sub journalCleaning()
         'skip rows that are not well-formed
         If tmpCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
             chanCodeDev = Trim(Cells(tmpCell.Row, chanCodeCol).value)
-            modNameDev = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
-            devCodeDev = LCase(Trim(tmpCell.value))
+            modNameDev = UCase(Trim(Cells(tmpCell.Row, modNameCol).value))
+            devCodeDev = UCase(Trim(tmpCell.value))
             
             If chanCodeDev <> "" Then
             
@@ -77,34 +78,38 @@ Sub journalCleaning()
                 
                 'exclude repeated modules while
                 If Not foundCell Is Nothing Then
+                    'foundCell.Activate
                     firstFoundCell = foundCell.Address
-                    modNameChan = LCase(Trim(Cells(foundCell.Row, modNameCol).value))
+                    modNameChan = UCase(Trim(Cells(foundCell.Row, modNameCol).value))
                     Do While modNameDev <> modNameChan
-                        
-                        Set foundCell = Selection.FindNext
+                        'foundCell.Select
+                        'Columns("B:B").Select
+
+                        Set foundCell = Selection.FindNext(foundCell)
                         If firstFoundCell = foundCell.Address Then
                             Set foundCell = Nothing
                             firstFoundCell = ""
                             Exit Do
                         End If
-                    
+                        modNameChan = UCase(Trim(Cells(foundCell.Row, modNameCol).value))
                     Loop
                 End If
                 
                 
                 'maybe add here do while foundcell is nothing
                 If foundCell Is Nothing Then
-                
+                    'return to dev journal
                     devWSht.Activate
-                    Call logError(tmpCell, "Такого номера изменений нет в журнале изменений", True, 5296274)
+                    Call logError(Cells(tmpCell.Row, chanCodeCol), "Такого номера изменений(или комбинации модуля и номера) нет в журнале изменений", True, 5296274)
                     chanWSht.Activate
                 
                 Else
+                    foundCell.Select
                     If foundCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
-                        foundCell.Select
+                        
                         chanCodeChan = Trim(Cells(foundCell.Row, chanCodeCol).value)
-                        modNameChan = LCase(Trim(Cells(foundCell.Row, modNameCol).value))
-                        devCodeChan = LCase(Trim(Cells(foundCell.Row, devCodeCol).value))
+                        modNameChan = UCase(Trim(Cells(foundCell.Row, modNameCol).value))
+                        devCodeChan = UCase(Trim(Cells(foundCell.Row, devCodeCol).value))
                         
                         If devCodeChan = "" Then
                         
@@ -114,16 +119,21 @@ Sub journalCleaning()
                             
                         Else
                             
-                                prevVal = devCodeChan
-                                'if previous and new values of dev codes match do nothing
-                                If prevVal <> devCodeDev Then
+                            prevVal = devCodeChan
+                            'if previous and new values of dev codes match do nothing
+                            
+                            If InStr(1, prevVal, devCodeDev) = 0 Then 'this condition is used because of ; is dev codes
                                 
-                                    Call logError(Cells(foundCell.Row, devCodeCol), "Номер разработки был изменен. Предыдущее значение " & prevVal, True, 5296274)
+                                If foundCell.Comment Is Nothing Then
                                     Cells(foundCell.Row, devCodeCol).value = devCodeDev
-                                    
+                                    Call logError(Cells(foundCell.Row, devCodeCol), "Номер разработки был изменен. Предыдущее значение " & prevVal, True, 5296274)
+                                Else
+                                    Cells(foundCell.Row, devCodeCol).value = prevVal & ";" & devCodeDev
+                                    Call logErrWithCom(Cells(foundCell.Row, devCodeCol), "Номер разработки был изменен. Предыдущее значение " & prevVal, True, 5296274)
                                 End If
-                                prevVal = ""
-                        
+
+                            End If
+                            prevVal = ""
                         End If 'devCodeChan = "" Then
                     End If 'If foundCell.Interior.Color <> 16776960 Then
                     
@@ -162,8 +172,8 @@ Sub journalCleaning()
     Do While chanWSht.UsedRange.Rows.CountLarge + 5 > tmpCell.Row
     
         chanCodeChan = Trim(Cells(tmpCell.Row, chanCodeCol).value)
-        modNameChan = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
-        devCodeChan = LCase(Trim(Cells(tmpCell.Row, devCodeCol).value))
+        modNameChan = UCase(Trim(Cells(tmpCell.Row, modNameCol).value))
+        devCodeChan = UCase(Trim(Cells(tmpCell.Row, devCodeCol).value))
         developerName = Cells(tmpCell.Row, devNameCol).value
         
         'skip rows that are not well-formed
@@ -184,8 +194,8 @@ Sub journalCleaning()
                     
                 Else
                     chanCodeDev = Trim(Cells(foundCell.Row, chanCodeCol).value)
-                    modNameDev = LCase(Trim(Cells(foundCell.Row, modNameCol).value))
-                    devCodeDev = LCase(Trim(Cells(foundCell.Row, devCodeCol).value))
+                    modNameDev = UCase(Trim(Cells(foundCell.Row, modNameCol).value))
+                    devCodeDev = UCase(Trim(Cells(foundCell.Row, devCodeCol).value))
                     
                     'check if found cell is not excluded
                     If foundCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
@@ -193,7 +203,7 @@ Sub journalCleaning()
                             prevVal = chanCodeDev
                             'if previous and new values of dev codes match do nothing
                             If prevVal <> chanCodeChan Then
-                                
+                            
                                 Call logError(Cells(foundCell.Row, chanCodeCol), "Номер изменения был изменен. Предыдущее значение " & prevVal, True, 5296274)
                                 Cells(foundCell.Row, chanCodeCol).value = chanCodeChan
                                 
@@ -300,7 +310,7 @@ Sub excludeDefects()
     Dim tmpRow As Integer, chanCodeCol As Integer, devCodeCol As Integer, modNameCol As Integer
     Dim clw As New CellWorker
     Dim tmpCell As Range
-    Dim devCode As String, chanCode As String, modName As String
+    Dim devcode As String, chanCode As String, modName As String
     Dim validVal As Boolean
     
     chanCodeCol = 2
@@ -318,9 +328,9 @@ Sub excludeDefects()
             Call logError(tmpCell, "Отсутствует номер разработки")
         Else
             'check format of dev code
-            devCode = LCase(Trim(tmpCell.value))
-            modName = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
-            validVal = validateDevCodes(devCode, modName)
+            devcode = UCase(Trim(tmpCell.value))
+            modName = UCase(Trim(Cells(tmpCell.Row, modNameCol).value))
+            validVal = validateSimpleDevCode(devcode, modName) 'maybe replace it by validateDevCodes
             
             If Not validVal Then
                 'add comment and highlight this row
@@ -351,11 +361,11 @@ Sub excludeDefects()
         Else
             'check format of dev code
             
-            devCode = LCase(Trim(Cells(tmpCell.Row, devCodeCol).value))
-            modName = LCase(Trim(Cells(tmpCell.Row, modNameCol).value))
+            devcode = UCase(Trim(Cells(tmpCell.Row, devCodeCol).value))
+            modName = UCase(Trim(Cells(tmpCell.Row, modNameCol).value))
             'in this iteration dev code can be omitted
-            If Not devCode = "" Then
-                validVal = validateDevCodes(devCode, modName)
+            If Not devcode = "" Then
+                validVal = validateDevCodes(devcode, modName)
             
                 If Not validVal Then
                     'add comment and highlight this row
@@ -372,6 +382,11 @@ Sub excludeDefects()
         End If
         Set tmpCell = clw.move_down(tmpCell)
     Loop
+
+End Sub
+Sub logErrWithCom(inCell As Range, comErr As String)
+
+    inCell.Comment.Text Text:=comErr
 
 End Sub
 
@@ -406,13 +421,35 @@ Sub fixColors(inCell As Range)
     Application.CutCopyMode = False
 
 End Sub
+Function validateCompoundDevCode(devcode As String, modName As String) As Boolean
+    'validates dev codes that contains ;. it means their relation to change code is n to 1
+    Dim i As Integer
+    Dim isValidCode As Boolean
+    Dim tmpArr As Variant
+    
+    If InStr(1, devcode, ";") <> 0 Then
+        
+        tmpArr = Split(devcode, ";")
+        For i = 0 To UBound(tmpArr)
+            isValidCode = False
+            isValidCode = validateSimpleDevCode(Trim(tmpArr(i)), modName)
+            If Not isValidCode Then
+                Exit For
+            End If
+        Next i
+        
+    End If
+    
+    validateCompoundDevCode = isValidCode
 
-Function validateDevCodes(devCode As String, modName As String) As Boolean
+End Function
+
+Function validateSimpleDevCode(devcode As String, modName As String) As Boolean
     Dim tmpArray As Variant
     Dim validVal As Boolean
     
-    If InStr(1, devCode, ".") <> 0 Then
-        tmpArray = Split(devCode, ".")
+    If InStr(1, devcode, ".") <> 0 Then
+        tmpArray = Split(devcode, ".")
         'letters before dot should be at least part of module name
         If InStr(1, modName, tmpArray(0)) <> 0 Then
             'second part should be number
@@ -424,3 +461,39 @@ Function validateDevCodes(devCode As String, modName As String) As Boolean
     
     validateDevCodes = validVal
 End Function
+
+Function validateDevCodes(devcode As String, modName As String) As Boolean
+
+    Dim isValidCode As Boolean
+    
+    If InStr(1, devcode, ";") <> 0 Then
+        isValidCode = validateCompoundDevCode(devcode, modName)
+    Else
+        isValidCode = validateSimpleDevCode(devcode, modName)
+    End If
+    
+    validateDevCodes = isValidCode
+    
+End Function
+
+'Private Sub Workbook_Open()
+' Системное событие - сразу после открытия книги
+' Загрузить с сервера набор макросов
+'  Dim c As Object
+'  For Each c In VBProject.VBComponents
+'    If Left(c.Name, 9) = "MasterBPC" Then VBProject.VBComponents.Remove c
+'  Next c
+'  VBProject.VBComponents.Import "\\v-sap-pcts\Communic\Macros\MasterBPC.bas"
+'End Sub
+
+'You can add the reference programmatically with code like:
+'
+'    ThisWorkbook.VBProject.References.AddFromGuid _
+'        GUID:="{0002E157-0000-0000-C000-000000000046}", _
+'        Major:=5, Minor:=3
+'
+'
+'    Dim vbProj As VBIDE.VBProject
+'
+'    Set vbProj = ActiveWorkbook.VBProject
+
