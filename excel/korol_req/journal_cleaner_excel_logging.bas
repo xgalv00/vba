@@ -475,25 +475,3 @@ Function validateDevCodes(devcode As String, modName As String) As Boolean
     validateDevCodes = isValidCode
     
 End Function
-
-'Private Sub Workbook_Open()
-' —истемное событие - сразу после открыти€ книги
-' «агрузить с сервера набор макросов
-'  Dim c As Object
-'  For Each c In VBProject.VBComponents
-'    If Left(c.Name, 9) = "MasterBPC" Then VBProject.VBComponents.Remove c
-'  Next c
-'  VBProject.VBComponents.Import "\\v-sap-pcts\Communic\Macros\MasterBPC.bas"
-'End Sub
-
-'You can add the reference programmatically with code like:
-'
-'    ThisWorkbook.VBProject.References.AddFromGuid _
-'        GUID:="{0002E157-0000-0000-C000-000000000046}", _
-'        Major:=5, Minor:=3
-'
-'
-'    Dim vbProj As VBIDE.VBProject
-'
-'    Set vbProj = ActiveWorkbook.VBProject
-
