@@ -17,6 +17,7 @@ Sub journalCleaning()
     Dim xmlName As String, desktopPath As String, rootTagName As String
     Dim prevVal As String
     Dim firstFoundCell As String
+    Dim changeColor As Long
     
     
     Application.EnableEvents = False
@@ -41,6 +42,7 @@ Sub journalCleaning()
     modNameCol = 3
     devCodeCol = 4
     devNameCol = 41
+    changeColor = 5296274
     
     
     Call replRusByEng
@@ -68,7 +70,11 @@ Sub journalCleaning()
             devCodeDev = UCase(Trim(tmpCell.value))
             
             If chanCodeDev <> "" Then
-            
+                
+                If tmpCell.Interior.Color = changeColor Or Cells(tmpCell.Row, chanCodeCol).Interior.Color = changeColor Then
+                    Call fixColors(tmpCell)
+                    Call fixColors(Cells(tmpCell.Row, chanCodeCol))
+                End If
                 chanWSht.Activate
                 Columns("B:B").Select
                 Set foundCell = Selection.Find(What:=chanCodeDev, After:=ActiveCell, LookIn:=xlFormulas, _
@@ -81,7 +87,8 @@ Sub journalCleaning()
                     'foundCell.Activate
                     firstFoundCell = foundCell.Address
                     modNameChan = UCase(Trim(Cells(foundCell.Row, modNameCol).value))
-                    Do While modNameDev <> modNameChan
+                    'Do While modNameDev <> modNameChan
+                    Do While InStr(1, modNameDev, modNameChan) = 0 And InStr(1, modNameChan, modNameDev) = 0
                         'foundCell.Select
                         'Columns("B:B").Select
 
@@ -100,12 +107,12 @@ Sub journalCleaning()
                 If foundCell Is Nothing Then
                     'return to dev journal
                     devWSht.Activate
-                    Call logError(Cells(tmpCell.Row, chanCodeCol), "Такого номера изменений(или комбинации модуля и номера) нет в журнале изменений", True, 5296274)
+                    Call logError(Cells(tmpCell.Row, chanCodeCol), "Такого номера изменений(или комбинации модуля и номера) нет в журнале изменений", True, changeColor)
                     chanWSht.Activate
                 
                 Else
                     foundCell.Select
-                    If foundCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
+                    If foundCell.Interior.Color <> 16776960 Or Cells(foundCell.Row, 1).Interior.Color <> 16776960 Then
                         
                         chanCodeChan = Trim(Cells(foundCell.Row, chanCodeCol).value)
                         modNameChan = UCase(Trim(Cells(foundCell.Row, modNameCol).value))
@@ -114,7 +121,7 @@ Sub journalCleaning()
                         If devCodeChan = "" Then
                         
                             chanWSht.Activate
-                            Call logError(Cells(foundCell.Row, devCodeCol), "Был добавлен номер разработки", True, 5296274)
+                            Call logError(Cells(foundCell.Row, devCodeCol), "Был добавлен номер разработки", True, changeColor)
                             Cells(foundCell.Row, devCodeCol).value = devCodeDev
                             
                         Else
@@ -124,12 +131,12 @@ Sub journalCleaning()
                             
                             If InStr(1, prevVal, devCodeDev) = 0 Then 'this condition is used because of ; is dev codes
                                 
-                                If foundCell.Comment Is Nothing Then
+                                If Cells(foundCell.Row, devCodeCol).Comment Is Nothing Then
                                     Cells(foundCell.Row, devCodeCol).value = devCodeDev
-                                    Call logError(Cells(foundCell.Row, devCodeCol), "Номер разработки был изменен. Предыдущее значение " & prevVal, True, 5296274)
+                                    Call logError(Cells(foundCell.Row, devCodeCol), "Номер разработки был изменен. Предыдущее значение " & prevVal, True, changeColor)
                                 Else
                                     Cells(foundCell.Row, devCodeCol).value = prevVal & ";" & devCodeDev
-                                    Call logErrWithCom(Cells(foundCell.Row, devCodeCol), "Номер разработки был изменен. Предыдущее значение " & prevVal, True, 5296274)
+                                    Call logErrWithCom(Cells(foundCell.Row, devCodeCol), "Номер разработки был изменен. Предыдущее значение " & prevVal)
                                 End If
 
                             End If
@@ -178,7 +185,12 @@ Sub journalCleaning()
         
         'skip rows that are not well-formed
         If tmpCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
-        
+            
+            If tmpCell.Interior.Color = changeColor Or Cells(tmpCell.Row, chanCodeCol).Interior.Color = changeColor Then
+                Call fixColors(tmpCell)
+                Call fixColors(Cells(tmpCell.Row, chanCodeCol))
+            End If
+            
             If devCodeChan <> "" Then
                 
                 devWSht.Activate
@@ -188,9 +200,11 @@ Sub journalCleaning()
                 MatchCase:=False, SearchFormat:=False)
                 
                 If foundCell Is Nothing Then
-                    
-                    chanWSht.Activate
-                    Call logError(tmpCell, "Код разработки отсутствует в журнале разработок", True, 5296274)
+                    'exclude compound dev codes
+                    If InStr(1, devCodeChan, ";") = 0 Then
+                        chanWSht.Activate
+                        Call logError(Cells(tmpCell.Row, devCodeCol), "Код разработки отсутствует в журнале разработок", True, changeColor)
+                    End If
                     
                 Else
                     chanCodeDev = Trim(Cells(foundCell.Row, chanCodeCol).value)
@@ -198,20 +212,21 @@ Sub journalCleaning()
                     devCodeDev = UCase(Trim(Cells(foundCell.Row, devCodeCol).value))
                     
                     'check if found cell is not excluded
-                    If foundCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
-                        If Not chanCodeDev = "" Then
-                            prevVal = chanCodeDev
+                    If foundCell.Interior.Color <> 16776960 Or Cells(foundCell.Row, 1).Interior.Color <> 16776960 Then
+                        'If Not chanCodeDev = "" Then
+                        '    prevVal = chanCodeDev
                             'if previous and new values of dev codes match do nothing
-                            If prevVal <> chanCodeChan Then
+                        '    If prevVal <> chanCodeChan Then
                             
-                                Call logError(Cells(foundCell.Row, chanCodeCol), "Номер изменения был изменен. Предыдущее значение " & prevVal, True, 5296274)
-                                Cells(foundCell.Row, chanCodeCol).value = chanCodeChan
+                        '        Call logError(Cells(foundCell.Row, chanCodeCol), "Номер изменения был изменен. Предыдущее значение " & prevVal, True, changeColor)
+                        '        Cells(foundCell.Row, chanCodeCol).value = chanCodeChan
                                 
-                            End If
-                            prevVal = ""
-                        Else
+                        '    End If
+                        '    prevVal = ""
+                        'Else
+                        If chanCodeDev = "" Then
                         
-                            Call logError(Cells(foundCell.Row, chanCodeCol), "Был добавлен номер изменения", True, 5296274)
+                            Call logError(Cells(foundCell.Row, chanCodeCol), "Был добавлен номер изменения", True, changeColor)
                             Cells(foundCell.Row, chanCodeCol).value = chanCodeChan
                             
                         End If 'If Not chanCodeDev = "" Then
@@ -226,7 +241,7 @@ Sub journalCleaning()
                 'if dev code is omitted but developer name is present this is an error
                 If developerName <> "" Then
                     chanWSht.Activate
-                    Call logError(tmpCell, "Отсутствует номер разработки в журнале изменений", True, 5296274)
+                    Call logError(tmpCell, "Отсутствует номер разработки в журнале изменений", True, changeColor)
                         
                 End If
                 
@@ -312,6 +327,7 @@ Sub excludeDefects()
     Dim tmpCell As Range
     Dim devcode As String, chanCode As String, modName As String
     Dim validVal As Boolean
+    Dim inRow As Integer
     
     chanCodeCol = 2
     modNameCol = 3
@@ -323,6 +339,11 @@ Sub excludeDefects()
     Set tmpCell = Cells(tmpRow, devCodeCol)
     
     Do While tmpCell.value <> "" Or Cells(tmpCell.Row, modNameCol).value <> "" Or Cells(tmpCell.Row + 1, modNameCol).value <> ""
+        'cleans previous exclusion
+        If Cells(tmpCell.Row, 1).Interior.Color = 16776960 Then
+            Call fixRowColor(tmpCell.Row)
+        End If
+        
         If tmpCell.value = "" Then
             'add comment and highlight this row
             Call logError(tmpCell, "Отсутствует номер разработки")
@@ -354,7 +375,13 @@ Sub excludeDefects()
     tmpRow = 4
     Set tmpCell = Cells(tmpRow, chanCodeCol)
     
+    
     Do While tmpCell.value <> "" Or Cells(tmpCell.Row, modNameCol).value <> ""
+        'clean previous exclusion
+        If Cells(tmpCell.Row, 1).Interior.Color = 16776960 Then
+            Call fixRowColor(tmpCell.Row)
+        End If
+        
         If tmpCell.value = "" Then
             'add comment and highlight this row
             Call logError(tmpCell, "Отсутствует номер изменения")
@@ -419,7 +446,9 @@ Sub fixColors(inCell As Range)
     Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
         SkipBlanks:=False, Transpose:=False
     Application.CutCopyMode = False
-
+    If Not inCell.Comment Is Nothing Then
+       inCell.Comment.Delete
+    End If
 End Sub
 Function validateCompoundDevCode(devcode As String, modName As String) As Boolean
     'validates dev codes that contains ;. it means their relation to change code is n to 1
@@ -459,7 +488,7 @@ Function validateSimpleDevCode(devcode As String, modName As String) As Boolean
         End If
     End If
     
-    validateDevCodes = validVal
+    validateSimpleDevCode = validVal
 End Function
 
 Function validateDevCodes(devcode As String, modName As String) As Boolean
@@ -476,6 +505,29 @@ Function validateDevCodes(devcode As String, modName As String) As Boolean
     
 End Function
 
+Sub fixRowColor(inRow As Integer)
+    Dim i As Integer
+    'makes row format like row from below
+    Rows(inRow + 1).Select
+    i = 2
+    Do While Selection.Interior.Color = 16776960
+        Rows(inRow + i).Select
+        i = i + 1
+    Loop
+    
+    Selection.Copy
+    Rows(inRow).Select
+    Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+        SkipBlanks:=False, Transpose:=False
+    Application.CutCopyMode = False
+
+    If Not Cells(inRow, 2).Comment Is Nothing Then
+       Cells(inRow, 2).Comment.Delete
+    ElseIf Not Cells(inRow, 4).Comment Is Nothing Then
+        Cells(inRow, 4).Comment.Delete
+    End If
+
+End Sub
 'Private Sub Workbook_Open()
 ' Системное событие - сразу после открытия книги
 ' Загрузить с сервера набор макросов
