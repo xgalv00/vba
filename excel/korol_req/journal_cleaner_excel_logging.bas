@@ -1,6 +1,7 @@
 Attribute VB_Name = "journal_cleaner_excel_logging"
     Dim devJour As Workbook, chanJour As Workbook
     Dim devWSht As Worksheet, chanWSht As Worksheet
+    Dim devJournName As String, chanJournName As String
     Dim resWBook As Workbook
     Dim tmpWSht As Worksheet
 
@@ -11,7 +12,7 @@ Sub journalCleaning()
     Dim clw As New CellWorker, flw As New FileWorker
     Dim devCodeChan As String, chanCodeChan As String, modNameChan As String, developerName As String 'values from change journal
     Dim devCodeDev As String, chanCodeDev As String, modNameDev As String   'values from dev journal
-    Dim devJournName As String, chanJournName As String
+    
     Dim chanCodeCol As Integer, devCodeCol As Integer, modNameCol As Integer
     Dim tmpArray As Variant
     Dim xmlName As String, desktopPath As String, rootTagName As String
@@ -42,7 +43,7 @@ Sub journalCleaning()
     modNameCol = 3
     devCodeCol = 4
     devNameCol = 41
-    changeColor = 5296274
+    changeColor = 65535
     
     
     Call replRusByEng
@@ -186,9 +187,8 @@ Sub journalCleaning()
         'skip rows that are not well-formed
         If tmpCell.Interior.Color <> 16776960 Or Cells(tmpCell.Row, 1).Interior.Color <> 16776960 Then
             
-            If tmpCell.Interior.Color = changeColor Or Cells(tmpCell.Row, chanCodeCol).Interior.Color = changeColor Then
-                Call fixColors(tmpCell)
-                Call fixColors(Cells(tmpCell.Row, chanCodeCol))
+            If Cells(tmpCell.Row, 1).Interior.Color = changeColor Then
+                Call fixColors(Cells(tmpCell.Row, 1))
             End If
             
             If devCodeChan <> "" Then
@@ -429,8 +429,13 @@ Sub logError(inCell As Range, comErr As String, Optional colorCellOnly As Boolea
     inCell.Comment.Text Text:=comErr
     If colorCellOnly Then
         'add here format cleaning
-        inCell.ClearFormats
-        inCell.Interior.Color = fillColor
+        If inCell.Parent.Parent.Name = chanJournName Then
+            Cells(inCell.Row, 1).Interior.Color = fillColor 'in change journal color only first cell in a row
+        Else
+            inCell.ClearFormats
+            inCell.Interior.Color = fillColor
+        End If
+
     Else
         Rows(inCell.Row).Select
         Selection.Interior.Color = fillColor
@@ -440,12 +445,22 @@ End Sub
 
 Sub fixColors(inCell As Range)
     'makes cell format like nearby cell
-    Cells(inCell.Row, inCell.Column + 1).Select
-    Selection.Copy
-    inCell.Select
-    Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
-        SkipBlanks:=False, Transpose:=False
-    Application.CutCopyMode = False
+    If inCell.Parent.Parent.Name = chanJournName Then
+        inCell.ClearFormats
+        If Cells(inCell.Row, 2).Comment Is Nothing Then
+            Cells(inCell.Row, 2).Comment.Delete
+        ElseIf Cells(inCell.Row, 4).Comment Is Nothing Then
+            Cells(inCell.Row, 4).Comment.Delete
+        End If
+
+    Else
+        Cells(inCell.Row, inCell.Column + 1).Select
+        Selection.Copy
+        inCell.Select
+        Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+            SkipBlanks:=False, Transpose:=False
+        Application.CutCopyMode = False
+    End If
     If Not inCell.Comment Is Nothing Then
        inCell.Comment.Delete
     End If
