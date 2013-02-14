@@ -203,7 +203,7 @@ Sub journalCleaning()
                     'exclude compound dev codes
                     If InStr(1, devCodeChan, ";") = 0 Then
                         chanWSht.Activate
-                        Call logError(Cells(tmpCell.Row, devCodeCol), "Код разработки отсутствует в журнале разработок", True, changeColor)
+                        Call logError(tmpCell, "Код разработки отсутствует в журнале разработок", True, changeColor)
                     End If
                     
                 Else
@@ -213,17 +213,7 @@ Sub journalCleaning()
                     
                     'check if found cell is not excluded
                     If foundCell.Interior.Color <> 16776960 Or Cells(foundCell.Row, 1).Interior.Color <> 16776960 Then
-                        'If Not chanCodeDev = "" Then
-                        '    prevVal = chanCodeDev
-                            'if previous and new values of dev codes match do nothing
-                        '    If prevVal <> chanCodeChan Then
-                            
-                        '        Call logError(Cells(foundCell.Row, chanCodeCol), "Номер изменения был изменен. Предыдущее значение " & prevVal, True, changeColor)
-                        '        Cells(foundCell.Row, chanCodeCol).value = chanCodeChan
-                                
-                        '    End If
-                        '    prevVal = ""
-                        'Else
+
                         If chanCodeDev = "" Then
                         
                             Call logError(Cells(foundCell.Row, chanCodeCol), "Был добавлен номер изменения", True, changeColor)
@@ -446,11 +436,10 @@ End Sub
 Sub fixColors(inCell As Range)
     'makes cell format like nearby cell
     If inCell.Parent.Parent.Name = chanJournName Then
-        inCell.ClearFormats
-        If Cells(inCell.Row, 2).Comment Is Nothing Then
+        
+        If Not Cells(inCell.Row, 2).Comment Is Nothing Then
+            inCell.ClearFormats
             Cells(inCell.Row, 2).Comment.Delete
-        ElseIf Cells(inCell.Row, 4).Comment Is Nothing Then
-            Cells(inCell.Row, 4).Comment.Delete
         End If
 
     Else
