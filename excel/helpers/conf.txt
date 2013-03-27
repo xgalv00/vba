@@ -1,1 +1,1 @@
-{from_file:work_with_code.bas,to_component:FileWorker}
+{from_file:bbUgol_copyPaste.bas,to_component:bbUgol_copyPaste}
