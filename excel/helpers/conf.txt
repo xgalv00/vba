@@ -1,1 +1,1 @@
-{from_file:bbUgol_copyPaste.bas,to_component:bbUgol_copyPaste}
+from_file:bbUgol_copyPaste.bas
