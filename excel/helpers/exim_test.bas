@@ -42,9 +42,11 @@ Sub exportTest(VBComp As String)
     'name of module with extension
     nameForConf = exportComp(VBCompObj, folderPath)
     
-    'Creates a record in conf.txt
+    'Creates a record in conf.txt if needed
     addSaveNote (nameForConf)
     
+    'removes module from project
+    ThisWorkbook.VBProject.VBComponents.Remove VBCompObj
     
     
 End Sub
@@ -235,18 +237,12 @@ Private Function isInConfig(fName As String) As Boolean
         Exit Function
     End If
     
-    On Error Resume Next
-    'try to find given fName in obtained collection
-    tmpStr = tmpColl.Item(fName)
+    For Each tmpItem In tmpColl
+        If tmpItem = fName Then
+            isInConfig = True
+        End If
+    Next tmpItem
     
-    'if error occurs that means file isn't exist
-    If Err.Number <> 0 Then
-        Exit Function
-    End If
-    
-    On Error GoTo 0
-    
-    isInConfig = True
 End Function
 
 Private Function isConfConsistent() As Boolean
