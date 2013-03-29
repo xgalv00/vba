@@ -5,9 +5,6 @@ Dim confFileName As String
 Sub test()
     'Starting point for export import macro
     
-    Dim c As Object
-    
-    
     'sets vba extesibility library without error messages
     Call setVBAExtensibility
     
@@ -18,7 +15,7 @@ Sub test()
     confFileName = folderPath & "conf.txt"
     
     'switch between tested functionality
-    'Call importTest(folderPath)
+    'Call importTest
     Call exportTest("bbUgol_copyPaste")
 
 End Sub
