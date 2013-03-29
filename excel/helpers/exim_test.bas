@@ -1,72 +1,74 @@
 Attribute VB_Name = "exim_test"
+Dim folderPath As String
+Dim confFileName As String
+
 Sub test()
+    'Starting point for export import macro
+    
     Dim c As Object
-    Dim folderPath As String
+    
     
     'sets vba extesibility library without error messages
     Call setVBAExtensibility
     
+    'global variables assignment.
+    'folderPath is where files are located.
     folderPath = "C:\Users\GalkinVa\Documents\my_macroses\excel\helpers\"
+    'confFileName is folderPath with the name of config file
+    confFileName = folderPath & "conf.txt"
     
+    'switch between tested functionality
     'Call importTest(folderPath)
-    Call exportTest(folderPath, "bbUgol_copyPaste")
+    Call exportTest("bbUgol_copyPaste")
 
 End Sub
 
-Sub exportTest(folderPath As String, VBComp As String)
+Sub exportTest(VBComp As String)
     '
-    '(string,string)->None
+    '(string)->None
     '
-    'Takes folderPath where to save exported vbComp.
+    'Takes folderPath from global space where to save exported vbComp.
     'Also there should be 'conf.txt' file where should be added remark about saving
     
     'Call exportTest(folderPath,vbCompName)
     Dim VBCompObj As Object
     Dim nameForConf As String
     
+    'replace this assert statement by exception
     Debug.Assert configExists(folderPath)
-    
+    '@todo add exception if vbComp with given name isn't exist in this workbook
     Set VBCompObj = ThisWorkbook.VBProject.VBComponents.Item(VBComp)
     
+    'name of module with extension
     nameForConf = exportComp(VBCompObj, folderPath)
     
+    'Creates a record in conf.txt
+    addSaveNote (nameForConf)
+    
     
     
 End Sub
 
-Sub importTest(folderPath As String)
+Sub importTest()
+
     Dim tmpCol As Collection
-    Dim confFileName As String
-    Dim toComponent As String
-    Dim fromFile As String
-    'Dim tmpItem As String
-    Dim tmpArr As Variant
-    Dim tmpArray As Variant
     
+    '@todo replace by exception
     Debug.Assert configExists(folderPath)
+    '@todo replace by exception
+    Debug.Assert isConfConsistent()
     
-    confFileName = folderPath & "conf.txt"
+    Set tmpCol = readConfig
     
-    Set tmpCol = readLinesFromTxt(confFileName)
-    If tmpCol Is Nothing Then
-        Err.Raise 31037, , "importTest: File" & folderPath & "conf.txt is empty"
-        Exit Sub
-    End If
+    Debug.Assert Not tmpCol Is Nothing
     
-    'parse json, maybe move this code to json deserealizing function
-    'File cleaning from not meaningful symbols
+    'Imports all files that are listed in conf.txt
     For Each tmpItem In tmpCol
-        
-        fromFile = getFileName(tmpItem)
-        Debug.Assert fromFile <> ""
-        Call importComp(folderPath & fromFile)
-        
+        Call importComp(folderPath & tmpItem)
     Next tmpItem
-    
-    
 
 End Sub
-Function getFileName(lineFromConfig As String) As String
+Function getFileName(lineFromConfig As Variant) As String
     
     '(str)->str
     
@@ -79,18 +81,22 @@ Function getFileName(lineFromConfig As String) As String
     Dim tmpItem As String, fromFile As String
     Dim tmpArray As Variant
     
+    
     tmpItem = Trim(lineFromConfig)
     tmpArray = Split(tmpItem, ":")
+    'I don't know how to use correctly arrays in this fucking vba!
+    'So if you know how to compute length of array please replace this condition
+    Debug.Assert UBound(tmpArray) < 2
     If UBound(tmpArray) > 0 Then
         fromFile = tmpArray(1)
     End If
     
-    lineFromConfig = fromFile
+    getFileName = fromFile
 
 
 End Function
 
-Function configExists(folderPath As String) As Boolean
+Private Function configExists(folderPath As String) As Boolean
 
     '(str)->bool
     
@@ -102,6 +108,8 @@ Function configExists(folderPath As String) As Boolean
     'False
     '>>>configExists(invalidPath)
     'False
+    
+    Dim confFileName As String
     
     configExists = False
     
@@ -120,28 +128,60 @@ Function configExists(folderPath As String) As Boolean
 End Function
 
 
-Sub setVBAExtensibility()
+Private Sub setVBAExtensibility()
     'sets reference to Microsoft VBA Extesibility library by using GUID
     
-    Dim tmpStr As String
-    Dim vbaExtesibilitySet As Boolean
+    If Not isVbaExtesibilitySet Then
+        ThisWorkbook.VBProject.References.AddFromGuid GUID:="{0002E157-0000-0000-C000-000000000046}", _
+        Major:=5, Minor:=3
+    End If
+    
+    Debug.Assert isVbaExtesibilitySet
+End Sub
 
+Private Function isVbaExtesibilitySet() As Boolean
+
+    'Returns True if reference with GUID={0002E157-0000-0000-C000-000000000046}(VBA extensibility) is set
+    Dim tmpStr As String
+    
+    'loop through all refences and look for this with particular GUID
     For Each ref In ThisWorkbook.VBProject.References
     
         tmpStr = ref.GUID
         If tmpStr = "{0002E157-0000-0000-C000-000000000046}" Then
-            vbaExtesibilitySet = True
+            isVbaExtesibilitySet = True
             Exit For
         End If
     Next ref
-    If Not vbaExtesibilitySet Then
-        ThisWorkbook.VBProject.References.AddFromGuid GUID:="{0002E157-0000-0000-C000-000000000046}", _
-        Major:=5, Minor:=3
+
+End Function
+
+Private Function readConfig() As Collection
+
+    'Reads conf.txt and returns collection of filenames from it
+    Dim tmpColl As Collection
+    Dim resColl As Collection
+    Dim fromFile As String
+    
+    Set tmpCol = readLinesFromTxt(confFileName)
+    If tmpCol Is Nothing Then
+        Err.Raise 31037, , "readConfig: File" & folderPath & "conf.txt is empty"
+        Exit Function
     End If
+    
+    Set resColl = New Collection
+    'File cleaning from not meaningful symbols
+    For Each tmpItem In tmpCol
+        fromFile = getFileName(tmpItem)
+        Debug.Assert fromFile <> ""
+        resColl.Add (fromFile)
+    Next tmpItem
+    
+    Set readConfig = resColl
+    
+End Function
 
-End Sub
-
-Public Function readLinesFromTxt(fPath As String) As Collection
+Private Function readLinesFromTxt(fPath As String) As Collection
     'returns collection of strings line by line, and returns nothing if file is empty
     Dim tmpColl As New Collection
     Dim tmpString As String
@@ -150,7 +190,6 @@ Public Function readLinesFromTxt(fPath As String) As Collection
     Do While Not EOF(1) ' Loop until end of file.
         Line Input #1, tmpString ' Read line into temp string.
         tmpColl.Add tmpString
-        'Debug.Print tmpString ' Print data to the Immediate window.
     Loop
     
     Close #1
@@ -162,7 +201,8 @@ Public Function readLinesFromTxt(fPath As String) As Collection
     End If
 
 End Function
-Sub addSaveNote(folderPath As String, strexportedFName As String)
+
+Private Sub addSaveNote(exportedFName As String)
 
     '(str)->NoneType
     
@@ -170,17 +210,58 @@ Sub addSaveNote(folderPath As String, strexportedFName As String)
     
     '>>>addSaveNote(folderPath,exportedFName)
     '
+    'If record about this file is already in conf.txt, do nothing
+    If isInConfig(exportedFName) Then
+        Exit Sub
+    End If
     
+    Open confFileName For Append As #1
+    
+    Print #1, "from_file:" & exportedFName
+    
+    Close #1
     
 End Sub
+Private Function isInConfig(fName As String) As Boolean
+
+    'Returns True if fName is already in conf.txt
+     
+    Dim tmpColl As Collection
+    Dim tmpStr As String
+    
+    'reads all filenames from config file
+    Set tmpColl = readConfig
+    If tmpColl Is Nothing Then
+        Exit Function
+    End If
+    
+    On Error Resume Next
+    'try to find given fName in obtained collection
+    tmpStr = tmpColl.Item(fName)
+    
+    'if error occurs that means file isn't exist
+    If Err.Number <> 0 Then
+        Exit Function
+    End If
+    
+    On Error GoTo 0
+    
+    isInConfig = True
+End Function
+
+Private Function isConfConsistent() As Boolean
+
+    'Returns True if "folderPath & 'conf.txt'" points to existing files
+    '@todo write body
+End Function
     
 
-Sub importComp(filePath As String)
+Private Sub importComp(filePath As String)
     'import one compenent at a time
     ThisWorkbook.VBProject.VBComponents.Import filePath
 End Sub
 
-Private Function exportComp(VBComp As VBIDE.vbComponent, _
+Private Function exportComp(VBComp As Object, _
             FolderName As String) As String
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     ' This function exports the code module of a VBComponent to a text
@@ -208,22 +289,22 @@ Private Function exportComp(VBComp As VBIDE.vbComponent, _
 
 End Function
 
-Public Function getCompExtension(VBComp As VBIDE.vbComponent) As String
+Private Function getCompExtension(VBComp As Object) As String
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ' This returns the appropriate file extension based on the Type of
 ' the VBComponent.
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     Select Case VBComp.Type
         Case vbext_ct_ClassModule
-            GetFileExtension = ".cls"
+            getCompExtension = ".cls"
         Case vbext_ct_Document
-            GetFileExtension = ".cls"
+            getCompExtension = ".cls"
         Case vbext_ct_MSForm
-            GetFileExtension = ".frm"
+            getCompExtension = ".frm"
         Case vbext_ct_StdModule
-            GetFileExtension = ".bas"
+            getCompExtension = ".bas"
         Case Else
-            GetFileExtension = ".bas"
+            getCompExtension = ".bas"
     End Select
     
 End Function
