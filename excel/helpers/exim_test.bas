@@ -15,8 +15,8 @@ Sub test()
     confFileName = folderPath & "conf.txt"
     
     'switch between tested functionality
-    'Call importTest
-    Call exportTest("bbUgol_copyPaste")
+    Call importTest
+    'Call exportTest("bbUgol_copyPaste")
 
 End Sub
 
@@ -246,6 +246,17 @@ Private Function isConfConsistent() As Boolean
 
     'Returns True if "folderPath & 'conf.txt'" points to existing files
     '@todo write body
+    Dim fNames As Collection
+    
+    Set fNames = readConfig()
+    
+    For Each fName In fNames
+        If Not (Dir(folderPath & fName, vbNormal + vbHidden + vbSystem) <> vbNullString) Then
+            Exit Function
+        End If
+    Next fName
+    
+    isConfConsistent = True
 End Function
     
 
