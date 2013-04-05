@@ -1,6 +1,6 @@
 Attribute VB_Name = "bbUgol_copyPaste"
 Dim srcWB As Workbook, destWB As Workbook
-Dim srcWSht As Worksheet, destWSht As Worksheet
+Dim srcWSht As Worksheet, destWSht As Worksheet ', ctrlSht As Worksheet
 Dim relToRange  As Range
 
 Sub startPoint()
@@ -20,8 +20,13 @@ Sub startPoint()
     Set ctrlRng = ctrlSht.Range("E3")
     Set relToRange = ctrlSht.Range(ctrlSht.Range("B3").value)
     
-        
+    'important
+    ctrlSht.Visible = xlSheetVisible
+    ctrlSht.Activate
+    
     Call moveThroughRows(ctrlRng)
+    
+    ctrlSht.Visible = xlSheetVeryHidden
     
 End Sub
 
@@ -87,6 +92,10 @@ End Function
 ''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''
+''''''''''''Helpers'''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''
+
+
 'Function returnRangeAddr(tmpRange As Range) As String
 '
 '    returnRangeAddr = tmpRange.Address(False, False)
