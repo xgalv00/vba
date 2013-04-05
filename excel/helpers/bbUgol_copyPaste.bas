@@ -22,9 +22,9 @@ Sub startPoint()
     Set relToRng = ctrlSht.Range("B3")
     
     relToRange = relToRng.value
-    addrForCopy = ctrlRng.value
     
-    Call copyRowOfRanges(addrForCopy)
+        
+    Call moveThroughRows(ctrlRng)
     
 End Sub
 
@@ -35,15 +35,39 @@ End Sub
 'Compute range address for copying
 
 'Copy one range to another
+Private Sub moveThroughRows(inRange As Range)
+    'Procedure moves through all most left non-empty cells in rows
+    Dim nextRowRange As Range
+    Dim clw As New CellWorker
+    
+    
+    Call copyRowOfRanges(inRange.value)
+    
+    Set nextRowRange = clw.move_down(inRange, 2)
+    
+    If nextRowRange.value = "" Then
+        Call moveThroughRows(nextRowRange)
+    End If
+
+End Sub
+
 Private Sub copyRowOfRanges(inRange As String)
     '
     Dim addrForCopy As String
+    Dim clw As New CellWorker
+    Dim nextRange As Range
     
+    If inRange = "" Then
+        Exit Sub
+    End If
+    'range address converted to A1 notation
     addrForCopy = convertToA1(inRange)
     
     destWSht.Range(addrForCopy).Value2 = srcWSht.Range(addrForCopy).Value2
     
-    'copyRowOfRanges(nextRange) - recursive call
+    Set nextRange = clw.move_right(inRange, 2)
+        
+    copyRowOfRanges (nextRange.value) ' - recursive call
 
 End Sub
 
