@@ -15,8 +15,8 @@ Sub test()
     confFileName = folderPath & "conf.txt"
     
     'switch between tested functionality
-    Call importTest
-    'Call exportTest("bbUgol_copyPaste")
+    'Call importTest
+    Call exportTest("bbUgol_copyPaste")
 
 End Sub
 
@@ -43,7 +43,7 @@ Sub exportTest(VBComp As String)
     addSaveNote (nameForConf)
     
     'removes module from project
-    ThisWorkbook.VBProject.VBComponents.Remove VBCompObj
+    'ThisWorkbook.VBProject.VBComponents.Remove VBCompObj
     
     
 End Sub
