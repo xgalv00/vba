@@ -1,4 +1,6 @@
 Attribute VB_Name = "ws_change_module"
+Dim IE As Object
+
 Sub wsChangePrep(inCompVal As String, inDsVal As String, inTimeVal As String, inStatus As String)
     'prepares given values for use in ws changing procedure
     
@@ -50,52 +52,47 @@ Private Function dummyEncUrl(valToEncode As String) As String
     dummyEncUrl = valToEncode
 End Function
 
+'private function openUrl(url as String
+
 Private Sub IE_Automation(url As String, status As Integer)
     Dim i As Long
-    Dim IE As Object
     Dim objElement As Object
     Dim objCollection As Object
-    'Dim IEREF As InternetExplorer
-    'Dim rState As Long
+    Dim isStatusChanged As Boolean
     
-    'Set IEREF = New InternetExplorer
-    'rState = IEREF.ReadyState
     ' Create InternetExplorer Object
     Set IE = CreateObject("InternetExplorer.Application")
     
     Debug.Assert Not IE Is Nothing 'IE should be installed on user's computer and working properly
+    
     ' Send the work status data To URL As GET request
     IE.Navigate url
-    'IEREF.Navigate url
-    'rState = IEREF.ReadyState
-    'IEREF.Visible = True
-    ' You can uncoment Next line To see work status results
+     
+     ' You can uncoment Next line To see work status results
     IE.Visible = True
-    
     
     ' Wait while IE loading...
     Do While IE.Busy
         Application.Wait DateAdd("s", 1, Now)
     Loop
     
+    'clicks one time on a green arrow within first screen
+    Call moveToStatusSelection
     
-    Set objCollection = IE.document.getElementById("imgSp406")
-    
-    Debug.Assert Not objCollection Is Nothing 'If this object is nothing means that either this object doesn't exist
-    'within BPC portal or user have some problems with access to it
-    
-    objCollection.Click
-    Set objCollection = Nothing
     'waits until select element will be loaded
     '@todo add time checking for more stability
     Do While objCollection Is Nothing
         Set objCollection = IE.document.getElementById("WShselStatus")
     Loop
-    'IE.Visible = True
+    'choose appropriate status for submit
     objCollection.selectedIndex = status
+    'submit button object
     Set objCollection = IE.document.getElementById("imgSp40607")
-        objCollection.Disabled = False
+    objCollection.Disabled = False 'without this Approved status selection doesn't work properly
     objCollection.Click
+    
+    'sanity check of actual status changing
+    Call checkStatusChange
  
     ' Clean up
     IE.Quit
@@ -104,3 +101,38 @@ Private Sub IE_Automation(url As String, status As Integer)
     Set objCollection = Nothing
  
 End Sub
+
+Private Sub moveToStatusSelection()
+    'Emulates click on use current cv or another cv screen
+    
+    Dim objCollection As Object
+
+    Set objCollection = IE.document.getElementById("imgSp406")
+    
+    Debug.Assert Not objCollection Is Nothing 'If this object is nothing means that either this object doesn't exist
+    'within BPC portal or user have some problems with access to it
+    
+    objCollection.Click
+End Sub
+
+Private Function checkStatusChange() As Boolean
+    Dim objCollection As Object
+    Dim tmpColl As Collection
+
+    Call moveToStatusSelection
+    
+    Set objCollection = IE.document.getElementsByTagName("td")
+    
+    Debug.Assert Not objCollection Is Nothing
+    
+    Set tmpColl = New Collection
+    For Each elem In objCollection
+        If elem.classname = "t_text08" Then
+            tmpColl.Add (elem)
+        End If
+    Next elem
+    
+    Debug.Assert True
+    
+End Function
+
