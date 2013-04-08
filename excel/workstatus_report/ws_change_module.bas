@@ -63,7 +63,7 @@ Private Sub IE_Automation(url As String, status As Integer)
     ' Create InternetExplorer Object
     Set IE = CreateObject("InternetExplorer.Application")
     
-    
+    Debug.Assert Not IE Is Nothing 'IE should be installed on user's computer and working properly
     ' Send the work status data To URL As GET request
     IE.Navigate url
     'IEREF.Navigate url
@@ -80,6 +80,10 @@ Private Sub IE_Automation(url As String, status As Integer)
     
     
     Set objCollection = IE.document.getElementById("imgSp406")
+    
+    Debug.Assert Not objCollection Is Nothing 'If this object is nothing means that either this object doesn't exist
+    'within BPC portal or user have some problems with access to it
+    
     objCollection.Click
     Set objCollection = Nothing
     'waits until select element will be loaded
