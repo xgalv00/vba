@@ -116,7 +116,7 @@ Sub create_comboBxs()
     With Selection.Validation
         .Delete
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
-        xlBetween, Formula1:="=Helper!$A$1:$A$5"
+        xlBetween, Formula1:="=Helper!$B$1:$B$5"
         .IgnoreBlank = True
         .InCellDropdown = True
         .InputTitle = ""
@@ -247,18 +247,35 @@ Sub clearComboBxs()
 End Sub
 
 Sub copyStatuses()
+    
     'copy status' filling from draft to clean copy
+    Dim clw As New CellWorker
+    Dim eng_rus_dict As Collection
+    Dim firstCellInRow As Range
+    Dim tmpRng As Range
+    
     technicalChange = True
     
+    Set eng_rus_dict = ws_change_module.make_dictionary()
+    
     wStatDraftSht.Select
-    Range(workRange.Address(False, False)).Select
-    Selection.Copy
+    Set firstCellInRow = Range("N11")
+    
+    Do While firstCellInRow.Value <> ""
+        Set tmpRng = firstCellInRow
+        Do While tmpRng <> ""
+            wStatSht.Range(tmpRng.Address).Value = eng_rus_dict(wStatDraftSht.Range(tmpRng.Address).Value)
+            Set tmpRng = clw.move_right(tmpRng)
+        Loop
+        Set firstCellInRow = clw.move_down(firstCellInRow)
+    Loop
+    'Selection.Copy
     'workRange.Copy
     wStatSht.Select
-    Range(workRange.Address(False, False)).Select
-    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
-        :=False, Transpose:=False
-    Application.CutCopyMode = False
+    'Range(workRange.Address(False, False)).Select
+    'Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+    '    :=False, Transpose:=False
+    'Application.CutCopyMode = False
     
     technicalChange = False
 
@@ -305,4 +322,7 @@ Sub record_change(changeCellAddr As String)
     statusVal = Range(changeCellAddr).Value
     
     Call wsChangePrep(compVal, dsVal, timeVal, statusVal)
+    If ws_change_module.statusChanged Then
+        MsgBox "Статус был изменен на " & statusVal
+    End If
 End Sub

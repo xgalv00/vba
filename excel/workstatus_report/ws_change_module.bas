@@ -1,6 +1,7 @@
 Attribute VB_Name = "ws_change_module"
 Dim IE As Object
 Dim statusText As String
+Public statusChanged As Boolean
 
 Sub wsChangePrep(inCompVal As String, inDsVal As String, inTimeVal As String, inStatus As String)
     'prepares given values for use in ws changing procedure
@@ -8,15 +9,13 @@ Sub wsChangePrep(inCompVal As String, inDsVal As String, inTimeVal As String, in
     Dim compValue As String, dsValue As String, timeValue As String, status As Integer
     Dim url As String
     
-    'inCompVal = "COM_ALL"
-    'inDsVal = "DS_AD23"
-    'inTimeVal = "2007.DEC"
-    'inStatus = "APPROVED"
-    
+   
     'encode values for Internet usage
     compValue = "%3A" & dummyEncUrl(inCompVal) & "%3B"
     dsValue = "%3A" & dummyEncUrl(inDsVal) & "%3B"
     timeValue = "%3A" & dummyEncUrl(inTimeVal) & "%3B"
+    'map rus status to english
+    inStatus = rus_to_eng(inStatus)
     statusText = inStatus
     
     'create url
@@ -36,6 +35,63 @@ Sub wsChangePrep(inCompVal As String, inDsVal As String, inTimeVal As String, in
     Call IE_Automation(url, status)
 
 End Sub
+Function make_dictionary(Optional rus_to_eng As Boolean) As Collection
+    'if rus_to_eng is true than russian statuses will be keys.
+    Dim helperSht As Worksheet
+    Dim clw As New CellWorker
+    Dim tmpColl As New Collection
+    Dim tmpRng As Range
+    
+    Set helperSht = ActiveWorkbook.Sheets("Helper")
+    helperSht.Select
+    If rus_to_eng Then
+        'russian statuses are keys
+        Set tmpRng = Range("A1")
+        Do While tmpRng <> ""
+            tmpColl.Add Cells(tmpRng.Row, tmpRng.Column + 1).Value, tmpRng.Value
+            Set tmpRng = clw.move_down(tmpRng)
+        Loop
+    Else
+        'english statuses are keys
+        Set tmpRng = Range("B1")
+        Do While tmpRng <> ""
+            tmpColl.Add Cells(tmpRng.Row, tmpRng.Column - 1).Value, tmpRng.Value
+            Set tmpRng = clw.move_down(tmpRng)
+        Loop
+    End If
+    
+    Debug.Assert tmpColl.Count > 0 And tmpColl.Count < 6 'only five statuses are in consolidation
+    
+    Set make_dictionary = tmpColl
+    
+End Function
+Private Function convert_rus_to_eng(rusStatus As String) As String
+    
+    Dim rus_eng_dict As Collection
+    
+    Set rus_eng_dict = make_dictionary(True)
+    
+    rus_to_eng = rus_eng_dict(rusStatus)
+End Function
+
+Private Function bulkAddToCol(ParamArray Vals() As Variant) As Collection
+    'collection must be the first argument
+    Dim tmpCol As Collection
+    Dim i As Integer
+    
+    Set tmpCol = Vals(0)
+    
+    For i = 1 To UBound(Vals)
+        tmpCol.Add (Vals(i))
+    Next i
+
+    If Not tmpCol Is Nothing Then
+        Set bulkAddToCol = tmpCol
+    Else
+        Err.Raise 9, , "bulkAddToCol: First argument wasn't a collection object or I am not working properly"
+    End If
+End Function
+
 
 Private Function dummyEncUrl(valToEncode As String) As String
     'replace . and _ only
@@ -82,19 +138,17 @@ Private Sub IE_Automation(url As String, status As Integer)
     Call moveToStatusSelection
     
     'waits until select element will be loaded
-    '@todo add time checking for more stability
-    Do While objCollection Is Nothing
-        Set objCollection = IE.document.getElementByID("WShselStatus")
-    Loop
+    Set objCollection = myGetByID("WShselStatus")
+    
     'choose appropriate status for submit
     objCollection.selectedIndex = status
     'submit button object
-    Set objCollection = IE.document.getElementByID("imgSp40607")
+    Set objCollection = myGetByID("imgSp40607")
     objCollection.Disabled = False 'without this Approved status selection doesn't work properly
     objCollection.Click
     
     'sanity check of actual status changing
-    Call isStatusChanged
+    statusChanged = isStatusChanged()
  
     ' Clean up
     IE.Quit
@@ -104,7 +158,14 @@ Private Sub IE_Automation(url As String, status As Integer)
 End Sub
 Private Function myGetByID(idName As String) As Object
     '@todo write normal function that will initialize html elements by given id
-
+    Dim htmlElem As Object
+    
+    '@todo add time checking for more stability
+    Do While htmlElem Is Nothing
+        Set htmlElem = IE.document.getElementByID(idName)
+    Loop
+    
+    Set myGetByID = htmlElem
 End Function
 
 Private Sub moveToStatusSelection()
@@ -112,9 +173,7 @@ Private Sub moveToStatusSelection()
     
     Dim objCollection As Object
     
-    Do While objCollection Is Nothing
-        Set objCollection = IE.document.getElementByID("imgSp406")
-    Loop
+    Set objCollection = myGetByID("imgSp406")
     
     Debug.Assert Not objCollection Is Nothing 'If this object is nothing means that either this object doesn't exist
     'within BPC portal or user have some problems with access to it
@@ -125,13 +184,12 @@ End Sub
 Private Function isStatusChanged() As Boolean
     'Returns true if after status changing procedure name of status changed too
     
-    Dim objCollection As Object
     Dim tmpStr As String
 
 
     Call moveToStatusSelection
     
-    Set objCollection = IE.document.getElementByID("WShtabCurStatus")
+    Set objCollection = myGetByID("WShtabCurStatus")
     
     Debug.Assert Not objCollection Is Nothing
     
