@@ -8,6 +8,7 @@ Sub wsChangePrep(inCompVal As String, inDsVal As String, inTimeVal As String, in
     
     Dim compValue As String, dsValue As String, timeValue As String, status As Integer
     Dim url As String
+    Dim tmpStr As String
     
    
     'encode values for Internet usage
@@ -15,7 +16,7 @@ Sub wsChangePrep(inCompVal As String, inDsVal As String, inTimeVal As String, in
     dsValue = "%3A" & dummyEncUrl(inDsVal) & "%3B"
     timeValue = "%3A" & dummyEncUrl(inTimeVal) & "%3B"
     'map rus status to english
-    inStatus = rus_to_eng(inStatus)
+    inStatus = convert_rus_to_eng(inStatus)
     statusText = inStatus
     
     'create url
@@ -41,21 +42,23 @@ Function make_dictionary(Optional rus_to_eng As Boolean) As Collection
     Dim clw As New CellWorker
     Dim tmpColl As New Collection
     Dim tmpRng As Range
+    Dim cacheSht As Worksheet
     
+    Set cacheSht = ActiveSheet
     Set helperSht = ActiveWorkbook.Sheets("Helper")
     helperSht.Select
     If rus_to_eng Then
         'russian statuses are keys
-        Set tmpRng = Range("A1")
+        Set tmpRng = Range("B1")
         Do While tmpRng <> ""
-            tmpColl.Add Cells(tmpRng.Row, tmpRng.Column + 1).Value, tmpRng.Value
+            tmpColl.Add Cells(tmpRng.Row, tmpRng.Column - 1).Value, tmpRng.Value
             Set tmpRng = clw.move_down(tmpRng)
         Loop
     Else
         'english statuses are keys
-        Set tmpRng = Range("B1")
+        Set tmpRng = Range("A1")
         Do While tmpRng <> ""
-            tmpColl.Add Cells(tmpRng.Row, tmpRng.Column - 1).Value, tmpRng.Value
+            tmpColl.Add Cells(tmpRng.Row, tmpRng.Column + 1).Value, tmpRng.Value
             Set tmpRng = clw.move_down(tmpRng)
         Loop
     End If
@@ -63,15 +66,14 @@ Function make_dictionary(Optional rus_to_eng As Boolean) As Collection
     Debug.Assert tmpColl.Count > 0 And tmpColl.Count < 6 'only five statuses are in consolidation
     
     Set make_dictionary = tmpColl
-    
+    cacheSht.Activate
 End Function
 Private Function convert_rus_to_eng(rusStatus As String) As String
     
     Dim rus_eng_dict As Collection
     
     Set rus_eng_dict = make_dictionary(True)
-    
-    rus_to_eng = rus_eng_dict(rusStatus)
+    convert_rus_to_eng = rus_eng_dict(rusStatus)
 End Function
 
 Private Function bulkAddToCol(ParamArray Vals() As Variant) As Collection
@@ -116,7 +118,6 @@ Private Sub IE_Automation(url As String, status As Integer)
     Dim i As Long
     Dim objElement As Object
     Dim objCollection As Object
-    Dim isStatusChanged As Boolean
     
     ' Create InternetExplorer Object
     Set IE = CreateObject("InternetExplorer.Application")

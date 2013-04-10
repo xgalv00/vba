@@ -253,6 +253,7 @@ Sub copyStatuses()
     Dim eng_rus_dict As Collection
     Dim firstCellInRow As Range
     Dim tmpRng As Range
+    Dim convVal As String
     
     technicalChange = True
     
@@ -263,8 +264,8 @@ Sub copyStatuses()
     
     Do While firstCellInRow.Value <> ""
         Set tmpRng = firstCellInRow
-        Do While tmpRng <> ""
-            wStatSht.Range(tmpRng.Address).Value = eng_rus_dict(wStatDraftSht.Range(tmpRng.Address).Value)
+        Do While tmpRng.Value <> "" And tmpRng.Value <> "#ERR"
+            wStatSht.Range(tmpRng.Address(False, False)).Value = eng_rus_dict(wStatDraftSht.Range(tmpRng.Address(False, False)).Value)
             Set tmpRng = clw.move_right(tmpRng)
         Loop
         Set firstCellInRow = clw.move_down(firstCellInRow)
@@ -323,6 +324,6 @@ Sub record_change(changeCellAddr As String)
     
     Call wsChangePrep(compVal, dsVal, timeVal, statusVal)
     If ws_change_module.statusChanged Then
-        MsgBox "Статус был изменен на " & statusVal
+        MsgBox "Статус был изменен на " & Range(changeCellAddr).Value
     End If
 End Sub
