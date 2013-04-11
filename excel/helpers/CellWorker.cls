@@ -17,6 +17,11 @@ Public Function move_up(moveFromCell As Range, Optional howFar As Integer) As Ra
 End Function
 
 Public Function move_down(moveFromCell As Range, Optional howFar As Integer) As Range
+    Dim cachedSht As Worksheet
+
+    Set cachedSht = ActiveSheet
+    
+    moveFromCell.Parent.Activate
     
     If howFar = 0 Then
         'if this check isn't present loops infinitely
@@ -27,16 +32,24 @@ Public Function move_down(moveFromCell As Range, Optional howFar As Integer) As 
         End If
     End If
     
-    Cells(moveFromCell.Row + howFar, moveFromCell.Column).Select
-    Set move_down = ActiveCell
+    Set move_down = Cells(moveFromCell.Row + howFar, moveFromCell.Column)
+    cachedSht.Activate
+    
 End Function
 Public Function move_right(moveFromCell As Range, Optional howFar As Integer) As Range
+    Dim cachedSht As Worksheet
     
     If howFar = 0 Then
         howFar = 1
     End If
-    Cells(moveFromCell.Row, moveFromCell.Column + howFar).Select
-    Set move_right = ActiveCell
+    
+    Set cachedSht = ActiveSheet
+    
+    moveFromCell.Parent.Activate
+    
+    Set move_right = Cells(moveFromCell.Row, moveFromCell.Column + howFar)
+    
+    cachedSht.Activate
     
 End Function
 Public Function move_left(moveFromCell As Range, Optional howFar As Integer) As Range

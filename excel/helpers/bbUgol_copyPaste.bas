@@ -4,7 +4,7 @@ Dim srcWSht As Worksheet, destWSht As Worksheet ', ctrlSht As Worksheet
 Dim relToRange  As Range
 Dim addrColl As Collection
 
-Sub startPoint()
+Sub copyMineFromFile()
 
     '
     Dim ctrlSht As Worksheet
@@ -34,6 +34,19 @@ Sub startPoint()
         Call copyRange(addr)
     Next addr
     
+End Sub
+
+Sub unhide_everything(disableAppOperations As Boolean)
+    If disableAppOperations Then
+        Application.EnableEvents = False
+        Application.ScreenUpdating = False
+    End If
+    ctrlSht.Visible = xlSheetVeryHidden
+
+End Sub
+
+Sub hide_everything()
+    ctrlSht.Visible = xlSheetVeryHidden
 End Sub
 
 'Open files for copy
@@ -81,7 +94,7 @@ Private Sub processRowOfRanges(inRange As Range)
     End If
 End Sub
 
-Private Sub copyRange(addrForCopy As String)
+Private Sub copyRange(addrForCopy As Variant)
 
     destWSht.Range(addrForCopy).Value2 = srcWSht.Range(addrForCopy).Value2
 
@@ -171,11 +184,48 @@ End Sub
 '    tmpString = tmpRange.Address(RowAbsolute:=False, ColumnAbsolute:=False, ReferenceStyle:=xlR1C1, relativeTo:=relativeTo)
 '    convertToR1C1 = tmpString
 'End Function
+Sub processSelRow()
+    Dim tmpStr As String
+    Dim upLeftCell As Range
+    Dim clw As New CellWorker
+    
+    Set relToRange = Range("E149")
+    Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("I10")
+    For Each areaItem In Selection.Areas
+        tmpStr = areaItem.Address(RowAbsolute:=False, ColumnAbsolute:=False, ReferenceStyle:=xlR1C1, relativeTo:=relToRange)
+        upLeftCell.value = tmpStr
+        tmpStr = ""
+        Set upLeftCell = clw.move_right(upLeftCell, 2)
+    Next areaItem
+
+End Sub
+
+Sub processSelCol()
+
+    Dim tmpStr As String
+    Dim upLeftCell As Range
+    Dim clw As New CellWorker
+    
+    Set relToRange = Range("E149")
+    Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("I10")
+    For Each areaItem In Selection.Areas
+        tmpStr = areaItem.Address(RowAbsolute:=False, ColumnAbsolute:=False, ReferenceStyle:=xlR1C1, relativeTo:=relToRange)
+        upLeftCell.value = tmpStr
+        tmpStr = ""
+        Set upLeftCell = clw.move_down(upLeftCell, 2)
+    Next areaItem
+
+End Sub
+
+Sub createControlTable()
+    'move to sheet that corresponds to this control sheet
+    
+End Sub
 
 Sub checkMineRange()
 
     Set relToRange = Range("E149")
-    
-    Call processMineRange(Range("E3"))
-
+    Application.EnableEvents = False
+    Call processMineRange(Range("I10"))
+    Application.EnableEvents = True
 End Sub
