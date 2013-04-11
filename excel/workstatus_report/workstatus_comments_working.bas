@@ -9,19 +9,7 @@ Sub refreshSht()
     Application.Run "MNU_eSUBMIT_REFSCHEDULE_SHEET_REFRESH"
 
 End Sub
-'Sub sendComment()
 
-'    Application.Run "MNU_ESUBMIT_COMMENT"
-
-'End Sub
-
-Sub refreshGivenCell()
-
-    'Application.Volatile (True)
-    Application.Run "MNU_ETOOLS_REFRESHRANGE"
-    'Application.Volatile (False)
-    
-End Sub
 
 Sub refresh()
 
@@ -205,7 +193,7 @@ End Function
 
 Sub prepareWorkspace()
     Call initialize_WS_variables
-    
+    Call unhide_everything
     
     wStatSht.Activate
     Range("N11").Select
@@ -215,8 +203,28 @@ Sub prepareWorkspace()
     Call create_comboBxs
     
     Call readComments
+    Call hide_everything
+
 
 End Sub
+Private Sub unhide_everything()
+
+    Application.ScreenUpdating = False
+    comDraftSht.Visible = xlSheetVisible
+    Sheets("Helper").Visible = xlSheetVisible
+    wStatDraftSht.Visible = xlSheetVisible
+
+End Sub
+
+Private Sub hide_everything()
+
+    comDraftSht.Visible = xlSheetVeryHidden
+    Sheets("Helper").Visible = xlSheetVeryHidden
+    wStatDraftSht.Visible = xlSheetVeryHidden
+    Application.ScreenUpdating = False
+
+End Sub
+
 Sub sendComments()
     Call initialize_WS_variables
     

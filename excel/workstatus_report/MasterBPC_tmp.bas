@@ -162,7 +162,7 @@ Attribute VB_Name = "MasterBPC_tmp"
 '    BEFORE_EXPAND = True
 'End Function
 '
-'Function AFTER_EXPAND(argument As String)
+Function AFTER_EXPAND(argument As String)
 '    Event_Name = "AFTER_EXPAND"
 '    ' Установить основные параметры для оптимизации выполнения макросов
 '    SetOptimizeMode sh, ActCell
@@ -197,12 +197,12 @@ Attribute VB_Name = "MasterBPC_tmp"
 '
 '    ' Снять основные параметры для оптимизации выполнения макросов
 '    SetNormalMode sh, ActCell
-'
-'    'call for workstatus report
-'    'Call prepareWorkspace
-'
-'    AFTER_EXPAND = True
-'End Function
+
+    'call for workstatus report
+    Call prepareWorkspace
+
+    AFTER_EXPAND = True
+End Function
 '
 'Function BEFORE_REFRESH(argument As String)
 '    Event_Name = "BEFORE_REFRESH"
@@ -214,7 +214,7 @@ Attribute VB_Name = "MasterBPC_tmp"
 '    BEFORE_REFRESH = True
 'End Function
 '
-'Function AFTER_REFRESH(argument As String)
+Function AFTER_REFRESH(argument As String)
 '    Event_Name = "AFTER_REFRESH"
 '    ' Установить основные параметры для оптимизации выполнения макросов
 '    SetOptimizeMode sh, ActCell
@@ -238,8 +238,12 @@ Attribute VB_Name = "MasterBPC_tmp"
 '
 '    ' Снять основные параметры для оптимизации выполнения макросов
 '    SetNormalMode sh, ActCell
-'    AFTER_REFRESH = True
-'End Function
+
+    'call for workstatus report
+    Call prepareWorkspace
+
+    AFTER_REFRESH = True
+End Function
 '
 'Function BEFORE_SEND(argument As String)
 '    Event_Name = "BEFORE_SEND"
