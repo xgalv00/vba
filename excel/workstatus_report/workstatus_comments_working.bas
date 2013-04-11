@@ -26,7 +26,7 @@ Sub readComments()
     
     Call initialize_WS_variables
     
-    Application.ScreenUpdating = False
+    'Application.ScreenUpdating = False
     Application.EnableEvents = False
     comDraftSht.Activate
     
@@ -55,7 +55,7 @@ Sub readComments()
     
     wStatSht.Activate
     Application.EnableEvents = True
-    Application.ScreenUpdating = True
+    'Application.ScreenUpdating = True
 End Sub
 
 Sub writeComments()
@@ -68,7 +68,7 @@ Sub writeComments()
     
     Call initialize_WS_variables
     
-    Application.ScreenUpdating = False
+    'Application.ScreenUpdating = False
     Application.EnableEvents = False
     
     wStatSht.Activate
@@ -96,7 +96,7 @@ Sub writeComments()
     
     Next i
     Application.EnableEvents = True
-    Application.ScreenUpdating = True
+   'Application.ScreenUpdating = True
 End Sub
 
 Sub create_comboBxs()
@@ -158,7 +158,7 @@ Attribute initialize_WS_variables.VB_ProcData.VB_Invoke_Func = " \n14"
 '
 '    Dim clw As New CellWorker
 '
-    Set statusWB = Workbooks("workstatus.xlsm")
+    Set statusWB = Workbooks("workstatus_v01.xlsm")
     
     Set wStatSht = statusWB.Sheets("WorkStatus")
     Set wStatDraftSht = statusWB.Sheets("WorkStatusDraft")
@@ -192,6 +192,8 @@ Function calcWorkRange() As Range
 End Function
 
 Sub prepareWorkspace()
+    Dim colorColl As New Collection
+    Dim keyColl As New Collection
     Call initialize_WS_variables
     Call unhide_everything
     
@@ -203,13 +205,17 @@ Sub prepareWorkspace()
     Call create_comboBxs
     
     Call readComments
+
     Call hide_everything
 
 
 End Sub
+
+
 Private Sub unhide_everything()
 
     Application.ScreenUpdating = False
+    Application.EnableEvents = False
     comDraftSht.Visible = xlSheetVisible
     Sheets("Helper").Visible = xlSheetVisible
     wStatDraftSht.Visible = xlSheetVisible
@@ -221,15 +227,18 @@ Private Sub hide_everything()
     comDraftSht.Visible = xlSheetVeryHidden
     Sheets("Helper").Visible = xlSheetVeryHidden
     wStatDraftSht.Visible = xlSheetVeryHidden
-    Application.ScreenUpdating = False
+    Application.ScreenUpdating = True
+    Application.EnableEvents = True
 
 End Sub
 
 Sub sendComments()
     Call initialize_WS_variables
-    
+    Call unhide_everything
     
     Call writeComments
+    
+    Call hide_everything
     'wStatSht.Select
     'workRange.Select
     'Call clearComboBxs
@@ -266,13 +275,13 @@ Sub copyStatuses()
     technicalChange = True
     
     Set eng_rus_dict = ws_change_module.make_dictionary()
-    
     wStatDraftSht.Select
     Set firstCellInRow = Range("N11")
     
     Do While firstCellInRow.Value <> ""
         Set tmpRng = firstCellInRow
         Do While tmpRng.Value <> "" And tmpRng.Value <> "#ERR"
+            'translates values
             wStatSht.Range(tmpRng.Address(False, False)).Value = eng_rus_dict(wStatDraftSht.Range(tmpRng.Address(False, False)).Value)
             Set tmpRng = clw.move_right(tmpRng)
         Loop
@@ -316,6 +325,7 @@ Sub record_change(changeCellAddr As String)
     Dim compValAddr As String
     Dim tmpArray As Variant
     
+    Call unhide_everything
     Set srcWSht = Sheets("WorkStatusDraft")
     'Set destWSht = Sheets("Changed1")
     srcCellFormula = srcWSht.Range(changeCellAddr).Formula
@@ -331,6 +341,7 @@ Sub record_change(changeCellAddr As String)
     statusVal = Range(changeCellAddr).Value
     
     Call wsChangePrep(compVal, dsVal, timeVal, statusVal)
+    Call hide_everything
     If ws_change_module.statusChanged Then
         MsgBox "Статус был изменен на " & Range(changeCellAddr).Value
     End If

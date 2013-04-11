@@ -76,23 +76,6 @@ Private Function convert_rus_to_eng(rusStatus As String) As String
     convert_rus_to_eng = rus_eng_dict(rusStatus)
 End Function
 
-Private Function bulkAddToCol(ParamArray Vals() As Variant) As Collection
-    'collection must be the first argument
-    Dim tmpCol As Collection
-    Dim i As Integer
-    
-    Set tmpCol = Vals(0)
-    
-    For i = 1 To UBound(Vals)
-        tmpCol.Add (Vals(i))
-    Next i
-
-    If Not tmpCol Is Nothing Then
-        Set bulkAddToCol = tmpCol
-    Else
-        Err.Raise 9, , "bulkAddToCol: First argument wasn't a collection object or I am not working properly"
-    End If
-End Function
 
 
 Private Function dummyEncUrl(valToEncode As String) As String
@@ -128,7 +111,7 @@ Private Sub IE_Automation(url As String, status As Integer)
     IE.Navigate url
      
      ' You can uncoment Next line To see work status results
-    IE.Visible = True
+    'IE.Visible = True
     
     ' Wait while IE loading...
     Do While IE.Busy
