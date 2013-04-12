@@ -190,7 +190,7 @@ Sub processSelRow()
     Dim clw As New CellWorker
     
     Set relToRange = Range("E149")
-    Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("I10")
+    Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("I44")
     For Each areaItem In Selection.Areas
         tmpStr = areaItem.Address(RowAbsolute:=False, ColumnAbsolute:=False, ReferenceStyle:=xlR1C1, relativeTo:=relToRange)
         upLeftCell.value = tmpStr
@@ -219,13 +219,69 @@ End Sub
 
 Sub createControlTable()
     'move to sheet that corresponds to this control sheet
+    Dim inUpLeftCell As Range
+    Dim rowStart As String, rowEnd As String
+    Dim colStart As String, colEnd As String
+    Dim sampleRow As Integer
+    Dim clw As New CellWorker
+    Dim tmpStr As String, tmpArr As Variant
+    Dim tmpRng As Range
+    
+    sampleRow = 10
+    Sheets("control_table_ÁÏÑÑ_ø").Select
+    Set inUpLeftCell = Range("I12")
+    Do While inUpLeftCell.value <> 0
+        Debug.Assert inUpLeftCell.value <> "R[74]C[2]:R[75]C[2]"
+        If InStr(1, inUpLeftCell.value, ":") <> 0 Then
+            tmpArr = Split(inUpLeftCell.value, ":")
+            tmpStr = tmpArr(0)
+            rowStart = computeRowOrCol(tmpArr(0), True)
+            rowEnd = computeRowOrCol(tmpArr(1), True)
+            Debug.Assert InStr(1, rowStart, "R") <> 0 And InStr(1, rowStart, "C") = 0
+            Set tmpRng = clw.move_right(inUpLeftCell, 2)
+            Do While Cells(sampleRow, tmpRng.Column).value <> ""
+                tmpArr = Split(Cells(sampleRow, tmpRng.Column).value, ":")
+                tmpStr = tmpArr(0)
+                colStart = computeRowOrCol(tmpArr(0))
+                colEnd = computeRowOrCol(tmpArr(1))
+                Debug.Assert InStr(1, colStart, "C") <> 0
+                tmpStr = rowStart & colStart & ":" & rowEnd & colEnd
+                tmpRng.value = tmpStr
+                Set tmpRng = clw.move_right(tmpRng, 2)
+            Loop
+        End If
+        Set inUpLeftCell = clw.move_down(inUpLeftCell, 2)
+    Loop
+    
     
 End Sub
+Private Function computeRowOrCol(addr As Variant, Optional rowAddr As Boolean) As String
+    'Takes addr in R1C1 notation and if rowAddr is true returns R[] part otherwise C[] part
+    '>>>computeRowOrCol("R[10]C[5]",True)
+    '"R[10]"
+    '>>>computeRowOrCol("R[10]C[5]")
+    '"C[5]"
+    
+    Dim i As Integer
+    Dim tmpStr As String
+
+    i = InStr(1, addr, "]")
+    Debug.Assert i <> 0
+    
+    If rowAddr Then
+        tmpStr = Left(addr, i)
+        computeRowOrCol = tmpStr
+    Else
+        tmpStr = Right(addr, Len(addr) - i)
+        computeRowOrCol = tmpStr
+    End If
+    
+End Function
 
 Sub checkMineRange()
 
-    Set relToRange = Range("E149")
+    Set relToRange = Range("E287")
     Application.EnableEvents = False
-    Call processMineRange(Range("I10"))
+    Call processMineRange(Range("A1"))
     Application.EnableEvents = True
 End Sub
