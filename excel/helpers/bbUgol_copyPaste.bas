@@ -1,7 +1,5 @@
 Attribute VB_Name = "bbUgol_copyPaste"
-Dim srcWB As Workbook, destWB As Workbook
-Dim srcWSht As Worksheet, destWSht As Worksheet ', ctrlSht As Worksheet
-Dim relToRange  As Range
+Public relToRange  As Range
 Dim addrColl As Collection
 
 Sub copyMineFromFile()
@@ -279,8 +277,8 @@ Private Function computeRowOrCol(addr As Variant, Optional rowAddr As Boolean) A
 End Function
 
 Sub checkMineRange()
-
-    Set relToRange = Range("E287")
+    Sheets("control_table_ÁÏÑÑ_ø").Select
+    'Set relToRange = Range("E287")
     Application.EnableEvents = False
     Call processMineRange(Range("A1"))
     Application.EnableEvents = True
