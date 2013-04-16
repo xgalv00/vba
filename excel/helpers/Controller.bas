@@ -3,7 +3,7 @@ Attribute VB_Name = "Controller"
 Dim srcWB As Workbook, destWB As Workbook
 Dim ctrlGenSht As Worksheet, cmbxCondSht As Worksheet
 Dim workRangeUpLeftCell As Range
-Dim constValColl As Collection 'maybe make it public
+Dim constValColl As Collection
 Public techChange As Boolean 'flag that used for turning off combobox's change events
 
 Private Sub initialize_constValColl()
@@ -16,6 +16,11 @@ Private Sub initialize_constValColl()
     'from tmp_filter_output
     constValColl.Add "control_table_general", "ctrlGenShtName"
     constValColl.Add "cmbx_condition_sht", "cmbxCondShtName"
+    constValColl.Add ActiveWorkbook.Name, "destWBName"
+    constValColl.Add "model_in.xlsm", "srcWBName" 'this should be reassigned accrodingly to name of opened file
+    constValColl.Add "control_table_", "sht_control_table_prefix"
+    constValColl.Add "A1", "upLeftCell_for_ctrl_sht"
+    
 End Sub
 
 'Dim workRange As Range
@@ -26,12 +31,12 @@ Sub copyBtnClicked()
     
     ctrlGenSht.Activate
     If workRangeUpLeftCell Is Nothing Then
-        Set workRangeUpLeftCell = Range("workRangeUpLeftCell")
+        Set workRangeUpLeftCell = Range(constValColl("workRangeUpLeftCell"))
     End If
     Set tmpRng = workRangeUpLeftCell
     Do While tmpRng.value <> ""
         shtName = Cells(1, tmpRng.Column)
-        Call bbUgol_copyPaste.copyProc(shtName, tmpRng.value)
+        Call bbUgol_copyPaste.copyProc(shtName, tmpRng.value, constValColl)
         Set tmpRng = clw.move_down(tmpRng)
     Loop
         
@@ -176,12 +181,12 @@ Sub startNewCopyMine_click()
     copyMineUF.Show False
 End Sub
 Sub cmbx_cleaning()
- 
+    techChange = True
     With copyMineUF
         .mineCmBx.Text = ""
         .mineManCmBx.Text = ""
     End With
-    
+    techChange = False
 End Sub
 
 Sub unloadCopyMineUF()
@@ -210,7 +215,8 @@ End Sub
 
 Private Sub tmpFilterRegionClear()
     'M1 is cell address where tmp filter stores its output
+    techChange = True
     ctrlGenSht.Activate
     Range(constValColl.Item("tmp_filter_output")).CurrentRegion.Clear
-    
+    techChange = False
 End Sub

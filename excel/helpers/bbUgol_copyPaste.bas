@@ -1,23 +1,27 @@
 Attribute VB_Name = "bbUgol_copyPaste"
-Public relToRange  As Range
+Dim relToRange  As Range
 Dim addrColl As Collection
+Dim srcWB As Workbook, destWB As Workbook
 
-Sub copyMineFromFile()
 
-    '
+Sub copyProc(shtName As String, relToRngAddr As String, constValColl As Collection)
+
+    'constValColl should contain at least source and destination workbook name
+    'prefix that is being added to shtName for ctrlShtName creation
+    'upLeftCell for ctrlSht that contains first address for copy
     Dim ctrlSht As Worksheet
     Dim ctrlRng As Range
-    Dim addrForCopy As String, relToAddr As String
+    Dim addrForCopy As String
     
-    Set srcWB = Workbooks("model_in.xlsm")
-    Set destWB = Workbooks("model_out.xlsm")
+    Set srcWB = Workbooks(constValColl("srcWBName"))
+    Set destWB = Workbooks(constValColl("destWBName"))
     
-    Set srcWSht = srcWB.Sheets("ÁÏÑÑ_ø")
-    Set ctrlSht = destWB.Sheets("control_table_ÁÏÑÑ_ø")
-    Set destWSht = destWB.Sheets("ÁÏÑÑ_ø")
+    Set srcWSht = srcWB.Sheets(shtName)
+    Set ctrlSht = destWB.Sheets(constValColl("sht_control_table_prefix") & shtName)
+    Set destWSht = destWB.Sheets(shtName)
     
-    Set ctrlRng = ctrlSht.Range("E3") 'upLeftCell for mine range
-    Set relToRange = ctrlSht.Range(ctrlSht.Range("B3").value)
+    Set ctrlRng = ctrlSht.Range(constValColl("upLeftCell_for_ctrl_sht")) 'upLeftCell for mine range
+    Set relToRange = ctrlSht.Range(relToRngAddr)
     
     'important
     ctrlSht.Visible = xlSheetVisible
