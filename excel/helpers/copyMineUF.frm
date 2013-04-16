@@ -27,6 +27,10 @@ Private Sub copyBtn_Click()
     Call Controller.unloadCopyMineUF
 End Sub
 
+Private Sub copyStyleChkBx_Click()
+    Call Controller.copyStyleChkBxClicked
+End Sub
+
 Private Sub mineCmBx_Change()
     If Not Controller.techChange Then
         Call Controller.mineCmBx_Changed
