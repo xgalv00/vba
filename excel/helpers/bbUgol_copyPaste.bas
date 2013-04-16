@@ -16,9 +16,9 @@ Sub copyProc(shtName As String, relToRngAddr As String, constValColl As Collecti
     Set srcWB = Workbooks(constValColl("srcWBName"))
     Set destWB = Workbooks(constValColl("destWBName"))
     
-    Set srcWSht = srcWB.Sheets(shtName)
+    'Set srcWSht = srcWB.Sheets(shtName)
     Set ctrlSht = destWB.Sheets(constValColl("sht_control_table_prefix") & shtName)
-    Set destWSht = destWB.Sheets(shtName)
+    'Set destWSht = destWB.Sheets(shtName)
     
     Set ctrlRng = ctrlSht.Range(constValColl("upLeftCell_for_ctrl_sht")) 'upLeftCell for mine range
     Set relToRange = ctrlSht.Range(relToRngAddr)
@@ -33,7 +33,7 @@ Sub copyProc(shtName As String, relToRngAddr As String, constValColl As Collecti
     
     'Copy one range to another
     For Each addr In addrColl
-        Call copyRange(addr)
+        Call copyRange(shtName, addr)
     Next addr
     
 End Sub
@@ -96,9 +96,9 @@ Private Sub processRowOfRanges(inRange As Range)
     End If
 End Sub
 
-Private Sub copyRange(addrForCopy As Variant)
+Private Sub copyRange(shtName As String, addrForCopy As Variant)
 
-    destWSht.Range(addrForCopy).Value2 = srcWSht.Range(addrForCopy).Value2
+    destWB.Sheets(shtName).Range(addrForCopy).Value2 = srcWB.Sheets(shtName).Range(addrForCopy).Value2
 
 End Sub
 

@@ -175,7 +175,7 @@ End Sub
 Sub startNewCopyMine_click()
     Call initialize_constValColl
     Debug.Assert Not constValColl Is Nothing And constValColl.Count > 0
-    Set destWB = ActiveWorkbook
+    Set destWB = Workbooks(constValColl("destWBName"))
     Set ctrlGenSht = destWB.Sheets(constValColl("ctrlGenShtName"))
     Set cmbxCondSht = destWB.Sheets(constValColl("cmbxCondShtName"))
     copyMineUF.Show False
