@@ -4,7 +4,16 @@ Dim confFileName As String
 
 Sub test()
     'Starting point for export import macro
+    Dim eximMode As Boolean 'true is export, false is import
     
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    eximMode = True
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+
     'sets vba extesibility library without error messages
     Call setVBAExtensibility
     
@@ -15,9 +24,13 @@ Sub test()
     confFileName = folderPath & "conf.txt"
     
     'switch between tested functionality
-    'Call importTest
-    Call exportTest("bbUgol_copyPaste")
-
+    If eximMode Then
+        For Each comp In ThisWorkbook.VBProject.VBComponents.Item(VBComp)
+            Call exportTest(comp.Name)
+        Next comp
+    Else
+        Call importTest
+    End If
 End Sub
 
 Sub exportTest(VBComp As String)
@@ -43,7 +56,7 @@ Sub exportTest(VBComp As String)
     addSaveNote (nameForConf)
     
     'removes module from project
-    'ThisWorkbook.VBProject.VBComponents.Remove VBCompObj
+    ThisWorkbook.VBProject.VBComponents.Remove VBCompObj
     
     
 End Sub
