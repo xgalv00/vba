@@ -26,6 +26,10 @@ Private Sub initialize_constValColl()
     constValColl.Add "model_in.xlsm", "srcWBName" 'this should be reassigned accrodingly to name of opened file
     constValColl.Add "control_table_", "sht_control_table_prefix"
     constValColl.Add "A1", "upLeftCell_for_ctrl_sht"
+    constValColl.Add "mineMan", "mine_management_prefix"
+    constValColl.Add "mine", "mine_prefix"
+    constValColl.Add "CmBx", "cmbx_postfix"
+    constValColl.Add "Lbl", "lbl_postfix"
     
 End Sub
 Sub startNewCopyMine_click()
@@ -65,33 +69,18 @@ Sub copyBtnClicked()
     
 End Sub
 
-Sub copyStyleChkBxClicked()
-    '@todo
-End Sub
 
 Sub mineCmBx_Changed()
 
-    Call enable_copyBtn
-    copyMineUF.mineLbl.ForeColor = vbBlack
     Call generalFiltering
 
 End Sub
 Sub mineManCmBx_Changed()
     Call generalFiltering
-    
-    copyMineUF.mineManLbl.ForeColor = vbBlack
-
-    If copyMineUF.copyStyleChkBx Then
-        copyMineUF.mineCmBx.Enabled = True
-        copyMineUF.mineLbl.ForeColor = vbRed
-        copyMineUF.mineCmBx.RowSource = Controller.computerRowSource("mineCmBx")
-    Else
-        Call enable_copyBtn
-    End If
 
 End Sub
 
-Sub proccesFileSelection()
+Function proccesFileSelection() As String
 
     'test
     Dim Filt As String
@@ -116,20 +105,19 @@ Sub proccesFileSelection()
     ' Exit if dialog box canceled
     If FileName = False Then
         MsgBox "Пожалуйста, выберите файл"
-        Exit Sub
+        Exit Function
     End If
     
-    copyMineUF.srcNameLbl.Caption = CStr(FileName)
+    proccesFileSelection = CStr(FileName)
     
     copyMineUF.srcNameLbl.ForeColor = vbBlack
     copyMineUF.srcNameLbl.ControlTipText = "Имя файла из которого будет выполнятся копирование"
     copyMineUF.mineManLbl.ForeColor = vbRed
     
-    copyMineUF.mineManCmBx.Enabled = True
-    copyMineUF.mineManCmBx.RowSource = computerRowSource("mineManCmBx")
 
 
-End Sub
+
+End Function
 
 
 Sub unloadCopyMineUF()
@@ -147,12 +135,10 @@ Sub unloadCopyMineUF()
     
 End Sub
 
-Private Sub enable_copyBtn()
-    copyMineUF.copyBtn.Enabled = True
-End Sub
 
-Private Sub generalFiltering()
-    
+
+Sub generalFiltering()
+    '@todo replace by something more dynamic
     cmbxCondSht.Range("A2").value = copyMineUF.mineManCmBx.Text
     cmbxCondSht.Range("B2").value = copyMineUF.mineCmBx.Text
     Call tmpFilterRegionClear
@@ -190,7 +176,7 @@ Private Sub tmpFilterRegionClear()
     Range(constValColl.Item("tmp_filter_output")).CurrentRegion.Clear
     techChange = False
 End Sub
-Private Function computerRowSource(cmbxName As String) As String
+Function computerRowSource(cmbxName As String) As String
 
     Dim tmpStr As String
     
