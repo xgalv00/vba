@@ -25,8 +25,10 @@ Sub test()
     
     'switch between tested functionality
     If eximMode Then
-        For Each comp In ThisWorkbook.VBProject.VBComponents.Item(VBComp)
-            Call exportTest(comp.Name)
+        For Each comp In ThisWorkbook.VBProject.VBComponents
+            If comp.Name <> "exim_test" And (comp.Type <> vbext_ct_Document) Then
+                Call exportTest(comp.Name)
+            End If
         Next comp
     Else
         Call importTest
@@ -229,7 +231,7 @@ Private Sub addSaveNote(exportedFName As String)
     
     Open confFileName For Append As #1
     
-    Print #1, "from_file:" & exportedFName
+    Print #1, "from_file:" & exportedFName;
     
     Close #1
     
@@ -258,7 +260,7 @@ End Function
 Private Function isConfConsistent() As Boolean
 
     'Returns True if "folderPath & 'conf.txt'" points to existing files
-    '@todo write body
+    
     Dim fNames As Collection
     
     Set fNames = readConfig()
