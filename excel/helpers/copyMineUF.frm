@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Dim uf_constValColl As Collection
 
 Private Sub UserForm_Initialize()
@@ -61,12 +62,21 @@ Private Sub copyBtn_Click()
 End Sub
 
 Private Sub copyStyleChkBx_Click()
-    Dim cmbxName As String
-    
-    cmbxName = uf_constValColl("mine_prefix") & uf_constValColl("cmbx_postfix")
-    If copyStyleChkBx Then
-        If copyMineUF.Controls(cmbxName).Enabled Then
-            disable_cmbx (uf_constValColl("mine_prefix"))
+    If mineManCmBx.Text <> "" Then 'do nothing if first combobox is empty
+        Dim cmbxName As String
+        
+        cmbxName = uf_constValColl("mine_prefix") & uf_constValColl("cmbx_postfix")
+        
+        If copyStyleChkBx Then
+            togle_black_red (uf_constValColl("mine_prefix"))
+            Call enableCmbx(uf_constValColl("mine_prefix"))
+        Else
+            If copyMineUF.Controls(cmbxName).Enabled Then
+                If copyMineUF.Controls(cmbxName).Text = "" Then
+                    togle_black_red (uf_constValColl("mine_prefix"))
+                End If
+                disable_cmbx (uf_constValColl("mine_prefix"))
+            End If
         End If
     End If
 End Sub

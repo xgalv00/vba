@@ -70,16 +70,6 @@ Sub copyBtnClicked()
 End Sub
 
 
-Sub mineCmBx_Changed()
-
-    Call generalFiltering
-
-End Sub
-Sub mineManCmBx_Changed()
-    Call generalFiltering
-
-End Sub
-
 Function proccesFileSelection() As String
 
     'test
