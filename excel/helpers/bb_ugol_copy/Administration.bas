@@ -74,7 +74,7 @@ Sub processSelRow()
     Dim upLeftCell As Range
     Dim clw As New CellWorker
     
-    Set relToRange = Range("E297")
+    Set relToRange = Range("E128")
     Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("A1")
     For Each areaItem In Selection.Areas
         tmpStr = areaItem.Address(RowAbsolute:=False, ColumnAbsolute:=False, ReferenceStyle:=xlR1C1, relativeTo:=relToRange)
@@ -91,7 +91,7 @@ Sub processSelCol()
     Dim upLeftCell As Range
     Dim clw As New CellWorker
     
-    Set relToRange = Range("E297")
+    Set relToRange = Range("E128")
     Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("A1")
     For Each areaItem In Selection.Areas
         tmpStr = areaItem.Address(RowAbsolute:=False, ColumnAbsolute:=False, ReferenceStyle:=xlR1C1, relativeTo:=relToRange)
@@ -111,29 +111,52 @@ Sub createControlTable()
     Dim clw As New CellWorker
     Dim tmpStr As String, tmpArr As Variant
     Dim tmpRng As Range
+    Dim rowVal As String, colVal As String
     
     sampleRow = 1
     Sheets("control_table_ÁÀÐ_ø").Select
     Set inUpLeftCell = Range("A3")
     Do While inUpLeftCell.value <> 0
         'Debug.Assert inUpLeftCell.value <> ""
-        If InStr(1, inUpLeftCell.value, ":") <> 0 Then
+        If InStr(1, inUpLeftCell.value, ":") <> 0 Or InStr(1, Cells(1, inUpLeftCell.Column).value, ":") <> 0 Then
             tmpArr = Split(inUpLeftCell.value, ":")
             tmpStr = tmpArr(0)
-            rowStart = computeRowOrCol(tmpArr(0), True)
-            rowEnd = computeRowOrCol(tmpArr(1), True)
+            If UBound(tmpArr) > 0 Then
+                rowStart = computeRowOrCol(tmpArr(0), True)
+                rowEnd = computeRowOrCol(tmpArr(1), True)
+            Else
+                rowStart = computeRowOrCol(tmpStr, True)
+                rowEnd = computeRowOrCol(tmpStr, True)
+            End If
             Debug.Assert InStr(1, rowStart, "R") <> 0 And InStr(1, rowStart, "C") = 0
             Set tmpRng = clw.move_right(inUpLeftCell, 2)
             Do While Cells(sampleRow, tmpRng.Column).value <> ""
                 tmpArr = Split(Cells(sampleRow, tmpRng.Column).value, ":")
                 tmpStr = tmpArr(0)
-                colStart = computeRowOrCol(tmpArr(0))
-                colEnd = computeRowOrCol(tmpArr(1))
+                If UBound(tmpArr) > 0 Then
+                    colStart = computeRowOrCol(tmpArr(0))
+                    colEnd = computeRowOrCol(tmpArr(1))
+                Else
+                    colStart = computeRowOrCol(tmpStr)
+                    colEnd = computeRowOrCol(tmpStr)
+                End If
                 Debug.Assert InStr(1, colStart, "C") <> 0
                 tmpStr = rowStart & colStart & ":" & rowEnd & colEnd
                 tmpRng.value = tmpStr
                 Set tmpRng = clw.move_right(tmpRng, 2)
             Loop
+        Else
+            Do While Cells(sampleRow, tmpRng.Column).value <> ""
+        
+                rowStart = computeRowOrCol(tmpStr, True)
+                rowEnd = computeRowOrCol(tmpStr, True)
+                colStart = computeRowOrCol(tmpStr)
+                colEnd = computeRowOrCol(tmpStr)
+                tmpStr = rowStart & colStart & ":" & rowEnd & colEnd
+                tmpRng.value = tmpStr
+                Set tmpRng = clw.move_right(tmpRng, 2)
+            Loop
+        
         End If
         Set inUpLeftCell = clw.move_down(inUpLeftCell, 2)
     Loop
