@@ -2,6 +2,7 @@ Attribute VB_Name = "bbUgol_copyPaste"
 Dim relToRange  As Range
 Dim addrColl As Collection
 Dim srcWB As Workbook, destWB As Workbook
+Dim ctrlSht As Worksheet
 
 
 Sub copyProc(shtName As String, relToRngAddr As String, constValColl As Collection)
@@ -9,7 +10,6 @@ Sub copyProc(shtName As String, relToRngAddr As String, constValColl As Collecti
     'constValColl should contain at least source and destination workbook name
     'prefix that is being added to shtName for ctrlShtName creation
     'upLeftCell for ctrlSht that contains first address for copy
-    Dim ctrlSht As Worksheet
     Dim ctrlRng As Range
     Dim addrForCopy As String
     
@@ -39,12 +39,12 @@ Sub copyProc(shtName As String, relToRngAddr As String, constValColl As Collecti
     
 End Sub
 
-Private Sub unhide_everything(disableAppOperations As Boolean)
+Private Sub unhide_everything(Optional disableAppOperations As Boolean)
     If disableAppOperations Then
         Application.EnableEvents = False
         Application.ScreenUpdating = False
     End If
-    ctrlSht.Visible = xlSheetVeryHidden
+    ctrlSht.Visible = xlSheetVisible
 
 End Sub
 
