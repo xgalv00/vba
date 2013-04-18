@@ -1,8 +1,4 @@
-from_file:bbUgol_copyPaste.bas
-from_file:copyPasteProj.bas
 from_file:FileWorker.cls
 from_file:CellWorker.cls
-from_file:colCopyUF.frm
-from_file:Administration.bas
-from_file:Controller.bas
-from_file:copyMineUF.frm
+from_file:CodeWorker.cls
+from_file:ErrHandler.cls

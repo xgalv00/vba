@@ -19,7 +19,7 @@ Sub test()
     
     'global variables assignment.
     'folderPath is where files are located.
-    folderPath = "C:\Users\GalkinVa\Documents\my_macroses\excel\helpers\"
+    folderPath = "C:\Users\GalkinVa\Documents\my_macroses\excel\helpers\bb_ugol_copy\"
     'confFileName is folderPath with the name of config file
     confFileName = folderPath & "conf.txt"
     
