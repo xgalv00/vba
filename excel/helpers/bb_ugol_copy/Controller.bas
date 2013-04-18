@@ -5,6 +5,7 @@ Dim ctrlGenSht As Worksheet, cmbxCondSht As Worksheet
 Dim workRangeUpLeftCell As Range
 Dim constValColl As Collection
 Public techChange As Boolean 'flag that used for turning off combobox's change events
+Dim calcType As Variant
 
 Private Sub initialize_constValColl()
 '''''''''''''''''''''''''''''''''''''
@@ -23,7 +24,6 @@ Private Sub initialize_constValColl()
     constValColl.Add "control_table_general", "ctrlGenShtName"
     constValColl.Add "cmbx_condition_sht", "cmbxCondShtName"
     constValColl.Add ActiveWorkbook.Name, "destWBName"
-    constValColl.Add "model_in.xlsm", "srcWBName" 'this should be reassigned accrodingly to name of opened file
     constValColl.Add "control_table_", "sht_control_table_prefix"
     constValColl.Add "A1", "upLeftCell_for_ctrl_sht"
     constValColl.Add "mineMan", "mine_management_prefix"
@@ -85,6 +85,8 @@ Function proccesFileSelection() As String
     'Dim FileName As Variant
     Dim Title As String
     Dim flw As New FileWorker
+    Dim tmpStr As String
+    Dim cachedWb As Workbook
     '@todo create file opener
     
     ' Set up list of file filters
@@ -104,15 +106,19 @@ Function proccesFileSelection() As String
         MsgBox "Пожалуйста, выберите файл"
         Exit Function
     End If
-    
-    proccesFileSelection = CStr(FileName)
-    
+    tmpStr = CStr(FileName)
+    proccesFileSelection = tmpStr
+    'this should be moved to userform code
     copyMineUF.srcNameLbl.ForeColor = vbBlack
     copyMineUF.srcNameLbl.ControlTipText = "Имя файла из которого будет выполнятся копирование"
     copyMineUF.mineManLbl.ForeColor = vbRed
+    Set cachedWb = ActiveWorkbook
     
-
-
+    Workbooks.Open tmpStr, False, True
+    
+    constValColl.Add flw.extractNameWithExt(tmpStr), "srcWBName" 'this should be reassigned accrodingly to name of opened file
+    
+    cachedWb.Activate
 
 End Function
 
@@ -131,6 +137,7 @@ Sub unloadCopyMineUF()
     Set cmbxCondSht = Nothing
     Set workRangeUpLeftCell = Nothing
     Set constValColl = Nothing
+    'Application.Calculate
     
 End Sub
 
@@ -229,10 +236,13 @@ Private Sub hide_everything()
     cmbxCondSht.Visible = xlSheetVeryHidden
     Application.ScreenUpdating = True
     Application.EnableEvents = True
+    Application.Calculation = calcType
     
 End Sub
 
 Private Sub unhide_everything()
+    calcType = Application.Calculation
+    Application.Calculation = xlCalculationManual
     Application.EnableEvents = False
     Application.ScreenUpdating = False
     ctrlGenSht.Visible = xlSheetVisible
