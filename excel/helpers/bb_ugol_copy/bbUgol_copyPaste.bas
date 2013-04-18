@@ -122,10 +122,10 @@ End Function
 Sub checkMineRange()
     Dim tmpSht As Worksheet
     Set addrColl = Nothing
-    Set tmpSht = Sheets("control_table_Á_ïð_âî")
+    Set tmpSht = Sheets("control_table_ÁïÄÐ_110_160_ø")
     tmpSht.Visible = xlSheetVisible
     tmpSht.Select
-    Set relToRange = Range("E128")
+    Set relToRange = Range("E215")
     Application.EnableEvents = False
     Call processMineRange(Range("A1"))
     Application.EnableEvents = True
