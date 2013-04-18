@@ -41,6 +41,7 @@ Sub startNewCopyMine_click()
     Set destWB = Workbooks(constValColl("destWBName"))
     Set ctrlGenSht = destWB.Sheets(constValColl("ctrlGenShtName"))
     Set cmbxCondSht = destWB.Sheets(constValColl("cmbxCondShtName"))
+    Call unhide_everything
     copyMineUF.Show False
 End Sub
 'Dim workRange As Range
@@ -56,6 +57,7 @@ Sub copyBtnClicked()
     Set tmpRng = workRangeUpLeftCell
     Do While tmpRng.value <> ""
         shtName = Cells(1, tmpRng.Column)
+        Debug.Assert shtName <> ""
         Call bbUgol_copyPaste.copyProc(shtName, tmpRng.value, constValColl)
         Set tmpRng = clw.move_down(tmpRng)
     Loop
@@ -117,11 +119,13 @@ Sub unloadCopyMineUF()
     Call cmbx_cleaning
     Call cmbx_cond_cleaning
     Call tmpFilterRegionClear
+    Call hide_everything
     
     Set destWB = Nothing
     Set ctrlGenSht = Nothing
     Set cmbxCondSht = Nothing
     Set workRangeUpLeftCell = Nothing
+    Set constValColl = Nothing
     
 End Sub
 
@@ -214,3 +218,18 @@ Private Function mineCmBx_compute_rowsource() As String
 
 End Function
 
+Private Sub hide_everything()
+
+    ctrlGenSht.Visible = xlSheetVeryHidden
+    cmbxCondSht.Visible = xlSheetVeryHidden
+    Application.ScreenUpdating = True
+    
+End Sub
+
+Private Sub unhide_everything()
+
+    ctrlGenSht.Visible = xlSheetVisible
+    cmbxCondSht.Visible = xlSheetVisible
+    Application.ScreenUpdating = False
+    
+End Sub

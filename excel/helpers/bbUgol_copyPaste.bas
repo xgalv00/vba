@@ -13,6 +13,7 @@ Sub copyProc(shtName As String, relToRngAddr As String, constValColl As Collecti
     Dim ctrlRng As Range
     Dim addrForCopy As String
     
+    Set addrColl = Nothing
     Set srcWB = Workbooks(constValColl("srcWBName"))
     Set destWB = Workbooks(constValColl("destWBName"))
     
@@ -38,7 +39,7 @@ Sub copyProc(shtName As String, relToRngAddr As String, constValColl As Collecti
     
 End Sub
 
-Sub unhide_everything(disableAppOperations As Boolean)
+Private Sub unhide_everything(disableAppOperations As Boolean)
     If disableAppOperations Then
         Application.EnableEvents = False
         Application.ScreenUpdating = False
@@ -47,7 +48,7 @@ Sub unhide_everything(disableAppOperations As Boolean)
 
 End Sub
 
-Sub hide_everything()
+Private Sub hide_everything()
     ctrlSht.Visible = xlSheetVeryHidden
 End Sub
 
@@ -115,3 +116,60 @@ Private Function convertToA1(inRange As String) As String
 End Function
 
 
+
+
+
+Sub checkMineRange()
+    Dim tmpSht As Worksheet
+    Set addrColl = Nothing
+    Set tmpSht = Sheets("control_table_ÁÀÐ_ø")
+    tmpSht.Visible = xlSheetVisible
+    tmpSht.Select
+    Set relToRange = Range("E297")
+    Application.EnableEvents = False
+    Call processMineRange(Range("A1"))
+    Application.EnableEvents = True
+End Sub
+
+'check computed addresses
+Private Sub processMineRange(upLeftCell As Range)
+
+    'Returns collection of addresses that should be copied
+    Dim selRange As Range
+    Dim i As Integer
+    Dim rangeAddr As String
+ 
+    
+    
+    Call moveThroughRows(upLeftCell)
+    
+    Debug.Assert addrColl.Count > 1
+    
+    Call activateApprSht(ActiveSheet.Name)
+    
+    For Each addr In addrColl
+        If selRange Is Nothing Then
+            Set selRange = Range(addr)
+        Else
+            Set selRange = Application.Union(selRange, Range(addr))
+        End If
+    Next addr
+    
+    
+    selRange.Select
+    
+End Sub
+
+
+Private Sub activateApprSht(curShtName As String)
+
+    'activates sheet appropriate to active control sheet
+    
+    Dim tmpStr As String
+    
+    tmpStr = Right(curShtName, Len(curShtName) - Len("control_table_"))
+    
+    ActiveWorkbook.Sheets(tmpStr).Activate
+    
+
+End Sub

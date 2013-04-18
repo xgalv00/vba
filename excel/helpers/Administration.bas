@@ -1,7 +1,11 @@
 Attribute VB_Name = "Administration"
+Dim relToRange As Range
 Sub checkMineRange()
-    Sheets("control_table_ÁÏÑÑ_ø").Select
-    'Set relToRange = Range("E287")
+    Dim tmpSht As Worksheet
+    Set tmpSht = Sheets("control_table_ÁÏÑÑ_ø")
+    tmpSht.Visible = xlSheetVisible
+    tmpSht.Select
+    Set relToRange = Range("E11")
     Application.EnableEvents = False
     Call processMineRange(Range("A1"))
     Application.EnableEvents = True
@@ -70,8 +74,8 @@ Sub processSelRow()
     Dim upLeftCell As Range
     Dim clw As New CellWorker
     
-    Set relToRange = Range("E149")
-    Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("I44")
+    Set relToRange = Range("E297")
+    Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("A1")
     For Each areaItem In Selection.Areas
         tmpStr = areaItem.Address(RowAbsolute:=False, ColumnAbsolute:=False, ReferenceStyle:=xlR1C1, relativeTo:=relToRange)
         upLeftCell.value = tmpStr
@@ -87,8 +91,8 @@ Sub processSelCol()
     Dim upLeftCell As Range
     Dim clw As New CellWorker
     
-    Set relToRange = Range("E149")
-    Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("I10")
+    Set relToRange = Range("E297")
+    Set upLeftCell = Sheets("control_table_" & ActiveSheet.Name).Range("A1")
     For Each areaItem In Selection.Areas
         tmpStr = areaItem.Address(RowAbsolute:=False, ColumnAbsolute:=False, ReferenceStyle:=xlR1C1, relativeTo:=relToRange)
         upLeftCell.value = tmpStr
@@ -108,11 +112,11 @@ Sub createControlTable()
     Dim tmpStr As String, tmpArr As Variant
     Dim tmpRng As Range
     
-    sampleRow = 10
-    Sheets("control_table_ÁÏÑÑ_ø").Select
-    Set inUpLeftCell = Range("I12")
+    sampleRow = 1
+    Sheets("control_table_ÁÀÐ_ø").Select
+    Set inUpLeftCell = Range("A3")
     Do While inUpLeftCell.value <> 0
-        Debug.Assert inUpLeftCell.value <> "R[74]C[2]:R[75]C[2]"
+        'Debug.Assert inUpLeftCell.value <> ""
         If InStr(1, inUpLeftCell.value, ":") <> 0 Then
             tmpArr = Split(inUpLeftCell.value, ":")
             tmpStr = tmpArr(0)
