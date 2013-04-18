@@ -42,7 +42,7 @@ Sub startNewCopyMine_click()
     Set ctrlGenSht = destWB.Sheets(constValColl("ctrlGenShtName"))
     Set cmbxCondSht = destWB.Sheets(constValColl("cmbxCondShtName"))
     Call unhide_everything
-    copyMineUF.Show False
+    copyMineUF.Show
 End Sub
 'Dim workRange As Range
 Sub copyBtnClicked()
@@ -56,6 +56,7 @@ Sub copyBtnClicked()
     End If
     Set tmpRng = workRangeUpLeftCell
     Do While tmpRng.value <> ""
+        ctrlGenSht.Activate
         shtName = Cells(1, tmpRng.Column)
         Debug.Assert shtName <> ""
         Call bbUgol_copyPaste.copyProc(shtName, tmpRng.value, constValColl)
@@ -64,6 +65,10 @@ Sub copyBtnClicked()
         
     Set tmpRng = Nothing
     Set tmpRng = clw.move_right(workRangeUpLeftCell)
+    'loop that helps to skip some sheets
+    Do While tmpRng.value = "" And Cells(1, tmpRng.Column).value <> ""
+        Set tmpRng = clw.move_right(tmpRng)
+    Loop
     If tmpRng.value <> "" Then
         Set workRangeUpLeftCell = tmpRng
         Call copyBtnClicked 'recursive call
@@ -223,13 +228,14 @@ Private Sub hide_everything()
     ctrlGenSht.Visible = xlSheetVeryHidden
     cmbxCondSht.Visible = xlSheetVeryHidden
     Application.ScreenUpdating = True
+    Application.EnableEvents = True
     
 End Sub
 
 Private Sub unhide_everything()
-
+    Application.EnableEvents = False
+    Application.ScreenUpdating = False
     ctrlGenSht.Visible = xlSheetVisible
     cmbxCondSht.Visible = xlSheetVisible
-    Application.ScreenUpdating = False
     
 End Sub

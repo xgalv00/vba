@@ -25,12 +25,12 @@ Sub copyProc(shtName As String, relToRngAddr As String, constValColl As Collecti
     Set relToRange = ctrlSht.Range(relToRngAddr)
     
     'important
-    ctrlSht.Visible = xlSheetVisible
+    Call unhide_everything
     ctrlSht.Activate
     
     Call moveThroughRows(ctrlRng)
     
-    ctrlSht.Visible = xlSheetVeryHidden
+    Call hide_everything
     
     'Copy one range to another
     For Each addr In addrColl
