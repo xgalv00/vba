@@ -205,41 +205,33 @@ Sub prepareWorkspace()
     Call create_comboBxs
     
     Call readComments
-'    keyColl.Add "По умолчанию"
-'    keyColl.Add "Ввод начат"
-'    keyColl.Add "Данные внесены"
-'    keyColl.Add "Данные содержат ошибки"
-'    keyColl.Add "Принято"
-'
-'    colorColl.Add 65
-'    colorColl.Add 255
-'    colorColl.Add 255
-'    colorColl.Add 255
-'    colorColl.Add 255
-'
-'    For i = 1 To keyColl.Count
-'        Call setFormatConditions("=" & keyColl(i), colorColl(i))
-'    Next i
+
     Call hide_everything
 
 
 End Sub
 
-'Private Sub setFormatConditions(statText As String, сolorInt As Long)
+Private Function Pass(sh)
 '
-'    wStatSht.Activate
-'    workRange.Select
-'    Selection.FormatConditions.Add Type:=xlTextString, String:=statText, TextOperator:=xlContains
-'    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
-'    Selection.FormatConditions(1).Interior.Color = 254
+' Прочитать пароль на листе
 '
-'        .PatternColorIndex = xlAutomatic
-'
-'        .TintAndShade = 0
-'    End With
-'    Selection.FormatConditions(1).StopIfTrue = False
-'
-'End Sub
+    ' Поиск ячейки-маркера
+    Set f = sh.Cells.Find("PasswordBPC", LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
+    If Not f Is Nothing Then
+        Set f = sh.Cells(f.Row + 1, f.Column)
+        Pass = f.Value
+        If sh.ProtectContents = False Then
+            f.NumberFormat = ";;;"
+            f.Locked = True
+            f.FormulaHidden = True
+            Set r = Range(sh.Cells(f.Row - 1, f.Column), f)
+            r.Interior.ThemeColor = xlThemeColorAccent1
+            r.Interior.TintAndShade = 0.4
+        End If
+    End If
+End Function
+
+
 Private Sub unhide_everything()
 
     Application.ScreenUpdating = False
@@ -318,10 +310,7 @@ Sub copyStatuses()
     'Selection.Copy
     'workRange.Copy
     wStatSht.Select
-    'Range(workRange.Address(False, False)).Select
-    'Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
-    '    :=False, Transpose:=False
-    'Application.CutCopyMode = False
+
     
     technicalChange = False
 
@@ -346,7 +335,7 @@ Function isInWorkrange(cellToExam As Range) As Boolean
 
 End Function
 
-Sub record_change(changeCellAddr As String)
+Function record_change(changeCellAddr As String) As Boolean
     Dim srcWSht As Worksheet ', destWSht As Worksheet
     Dim srcCellFormula As String ', destCellFormula As String
     Dim compVal As String, dsVal As String, timeVal As String, statusVal As String
@@ -371,6 +360,6 @@ Sub record_change(changeCellAddr As String)
     Call wsChangePrep(compVal, dsVal, timeVal, statusVal)
     Call hide_everything
     If ws_change_module.statusChanged Then
-        MsgBox "Статус был изменен на " & Range(changeCellAddr).Value
+        record_change = True
     End If
-End Sub
+End Function

@@ -13,9 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
-
-Public tempSheet As Worksheet
+Public msgWasSent As Boolean
 
 Private Sub CommandButtonCancel_Click()
     
@@ -25,26 +23,10 @@ End Sub
 
 Private Sub CommandButtonSend_Click()
     '
-    If LabelFileMessage.Caption = "" Then
-        SendStatusMail TextBoxTo.Value, TextBoxText.Value, TextBoxSubject.Value
-    Else
-        SendStatusMailWithSheet TextBoxTo.Value, TextBoxText.Value, TextBoxSubject.Value, tempSheet
-    End If
-    '
+    Dim mailSndr As New MailSender
+    msgWasSent = True
     Hide
     '
 End Sub
 
-Public Sub SendWithOutCheck()
 
-    CommandButtonSend_Click
-    
-End Sub
-
-Private Sub LabelFileMessage_Click()
-
-End Sub
-
-Private Sub UserForm_Click()
-
-End Sub

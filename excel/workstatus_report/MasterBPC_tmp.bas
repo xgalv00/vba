@@ -9,6 +9,274 @@ Attribute VB_Name = "MasterBPC_tmp"
 '' Внесены небольшие изменения 14.08.2012
 '' Дата:  11.07.2012
 ''*************************
+
+
+'Private Sub ProtectBook()
+''
+'' Установить пароль на все листы рабочей книги
+''
+'    Dim argument As String
+'    ' Цикл по всем листам книги
+'    For i = 1 To ActiveWorkbook.Sheets.Count
+'        If Sheets(i).Visible = xlSheetVisible Then
+'            Sheets(i).Activate
+'            t = AFTER_EXPAND(argument)
+'        End If
+'    Next i
+'End Sub
+'
+'Private Sub UnProtectBook()
+''
+'' Снять пароль со всех листов рабочей книги
+''
+'    Event_Name = "BEFORE_"
+'    ' Установить основные параметры для оптимизации выполнения макросов
+'    SetOptimizeMode sh, ActCell
+'    ' Цикл по всем листам книги
+'    For i = 1 To ActiveWorkbook.Sheets.Count
+'        If Sheets(i).Visible = True And Sheets(i).ProtectContents = True Then
+'            Sheets(i).Unprotect ActCell.Value
+'        End If
+'    Next i
+'    sh.Activate
+'    ' Снять основные параметры для оптимизации выполнения макросов
+'    SetNormalMode sh, ActCell
+'End Sub '
+'Public Function Pass(sh)
+''
+'' Прочитать пароль на листе
+''
+'    ' Поиск ячейки-маркера
+'    Set f = sh.Cells.Find("PasswordBPC", LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
+'    If Not f Is Nothing Then
+'        Set f = sh.Cells(f.Row + 1, f.Column)
+'        Pass = f.Value
+'        If sh.ProtectContents = False Then
+'            f.NumberFormat = ";;;"
+'            f.Locked = True
+'            f.FormulaHidden = True
+'            Set r = Range(sh.Cells(f.Row - 1, f.Column), f)
+'            r.Interior.ThemeColor = xlThemeColorAccent1
+'            r.Interior.TintAndShade = 0.4
+'        End If
+'    End If
+'End Function
+
+Function AFTER_EXPAND(argument As String)
+'    Event_Name = "AFTER_EXPAND"
+'    ' Установить основные параметры для оптимизации выполнения макросов
+'    SetOptimizeMode sh, ActCell
+'
+'    ' Есть ли колонка для обработки
+'    Set f = sh.Rows(1).Find(Event_Name, LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
+'    If Not f Is Nothing Then
+'        ' Обновить книгу
+'        Set f2 = sh.Columns(f.Column).Find("Refresh", LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
+'        If Not f2 Is Nothing Then
+'            Application.Run "MNU_eTOOLS_REFRESH"
+'            ' Установить основные параметры для оптимизации выполнения макросов
+'            SetOptimizeMode sh, ActCell
+'        End If
+'        ' Скопировать содержимое
+'        CopyPaste sh, f.Column
+'        ' Применить формулы
+'        ApplyFormulas sh, f.Column
+'        ' Скрыть столбцы
+'        HideColumns sh, f.Column
+'        ' Объединить ячейки
+'        MergeCells sh, f.Column
+'    End If
+'    ' Удалить строки
+'    DeleteRows sh
+'    ' Сортировать строки
+'    Sort sh
+'    ' Скрыть строки
+'    HideRows sh
+'    ' Отрегистрировать пользователя от всех форм
+'    Locks_OffBook
+'
+'    ' Снять основные параметры для оптимизации выполнения макросов
+'    SetNormalMode sh, ActCell
+
+    'call for workstatus report
+    Call prepareWorkspace
+
+    AFTER_EXPAND = True
+End Function
+
+Function AFTER_REFRESH(argument As String)
+'    Event_Name = "AFTER_REFRESH"
+'    ' Установить основные параметры для оптимизации выполнения макросов
+'    SetOptimizeMode sh, ActCell
+'
+'    ' Есть ли колонка для обработки
+'    Set f = sh.Rows(1).Find(Event_Name, LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
+'    If Not f Is Nothing Then
+'        ' Применить формулы
+'        ApplyFormulas sh, f.Column
+'        ' Развернуть все
+'        Set f2 = sh.Columns(f.Column).Find("Expand", LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
+'        If Not f2 Is Nothing Then
+'            Application.Run "MNU_eTOOLS_EXPAND"
+'            ' Установить основные параметры для оптимизации выполнения макросов
+'            SetOptimizeMode sh, ActCell
+'        End If
+'    End If
+'    ' Отрегистрировать пользователя от всех форм
+'    'Locks_OffBook
+'    'Call prepareWorkspace
+'
+'    ' Снять основные параметры для оптимизации выполнения макросов
+'    SetNormalMode sh, ActCell
+
+    'call for workstatus report
+    Call prepareWorkspace
+
+    AFTER_REFRESH = True
+End Function
+
+
+
+
+
+
+'Private Function SAPlogon()
+''
+'' Вход в систему SAP
+''
+'    Application.StatusBar = "Соединение с сервером..."
+'    SAPlogon = False
+'    On Error Resume Next
+'    Workbooks.Open "C:\PROGRAM FILES\COMMON FILES\SAP SHARED\BW\sapbex.xla"
+'    If Err.Number Then MsgBox "Не найден файл sapbex.xla", vbCritical, "Подключение к серверу SAP": Exit Function
+'    On Error GoTo 0
+'    Set myConnection = Run("SAPBEX.XLA!SAPBEXgetConnection")
+'    With myConnection
+'        Select Case Application.Run("EVSVR")
+'            Case "HTTP://172.16.34.1"
+'                SapServer = "172.16.10.4"
+'                .Client = "100"
+'            Case "HTTP://172.16.10.12"
+'                SapServer = "172.16.10.12"
+'                .Client = "200"
+'            Case "HTTP://172.16.30.6"
+'                SapServer = "172.16.30.6"
+'                .Client = "300"
+'            Case "HTTP://V-SAP-DBI"
+'                SapServer = "172.16.10.4"
+'                .Client = "100"
+'            Case "HTTP://V-SAP-QBI"
+'                SapServer = "172.16.10.12"
+'                .Client = "200"
+'            Case "HTTP://V-SAP-PBI"
+'                SapServer = "172.16.30.6"
+'                .Client = "300"
+'        End Select
+'        .ApplicationServer = SapServer
+'        .SystemNumber = "00"
+'        .User = "WF-COMM"
+'        .Password = "P@ssw0rd"
+'        .Language = "en"
+'        .logon 0, True
+'        If .IsConnected <> 1 Then
+'            .logon 0, False
+'            If .IsConnected <> 1 Then MsgBox "Соединение с системой установить не удалось", vbCritical, "Подключение к серверу SAP": Exit Function
+'        End If
+'    End With
+'    SAPlogon = True
+'    Application.StatusBar = "Соединение с сервером успешно установлено"
+'End Function
+'
+'Private Function SAPconnect(fm_name)
+''
+'' Подключение к системе SAP, создание объекта Функциональный модуль
+''
+'    'SAPconnect = False
+'    If SAPlogon Then
+'        Set sap = CreateObject("SAP.Functions")
+'        sap.Connection = myConnection
+'        On Error Resume Next '?
+'        Set fm = sap.Add(fm_name)
+'        If Err.Number Then MsgBox "Функциональный модуль " & fm_name & " не найден", vbCritical, "Подключение к серверу SAP": Exit Function
+'        On Error GoTo 0 '?
+'        SAPconnect = True
+'    End If
+'End Function
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 '
 'Public sh           As Worksheet
 'Public ActCell      As Range
@@ -162,47 +430,7 @@ Attribute VB_Name = "MasterBPC_tmp"
 '    BEFORE_EXPAND = True
 'End Function
 '
-Function AFTER_EXPAND(argument As String)
-'    Event_Name = "AFTER_EXPAND"
-'    ' Установить основные параметры для оптимизации выполнения макросов
-'    SetOptimizeMode sh, ActCell
-'
-'    ' Есть ли колонка для обработки
-'    Set f = sh.Rows(1).Find(Event_Name, LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
-'    If Not f Is Nothing Then
-'        ' Обновить книгу
-'        Set f2 = sh.Columns(f.Column).Find("Refresh", LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
-'        If Not f2 Is Nothing Then
-'            Application.Run "MNU_eTOOLS_REFRESH"
-'            ' Установить основные параметры для оптимизации выполнения макросов
-'            SetOptimizeMode sh, ActCell
-'        End If
-'        ' Скопировать содержимое
-'        CopyPaste sh, f.Column
-'        ' Применить формулы
-'        ApplyFormulas sh, f.Column
-'        ' Скрыть столбцы
-'        HideColumns sh, f.Column
-'        ' Объединить ячейки
-'        MergeCells sh, f.Column
-'    End If
-'    ' Удалить строки
-'    DeleteRows sh
-'    ' Сортировать строки
-'    Sort sh
-'    ' Скрыть строки
-'    HideRows sh
-'    ' Отрегистрировать пользователя от всех форм
-'    Locks_OffBook
-'
-'    ' Снять основные параметры для оптимизации выполнения макросов
-'    SetNormalMode sh, ActCell
 
-    'call for workstatus report
-    Call prepareWorkspace
-
-    AFTER_EXPAND = True
-End Function
 '
 'Function BEFORE_REFRESH(argument As String)
 '    Event_Name = "BEFORE_REFRESH"
@@ -214,36 +442,7 @@ End Function
 '    BEFORE_REFRESH = True
 'End Function
 '
-Function AFTER_REFRESH(argument As String)
-'    Event_Name = "AFTER_REFRESH"
-'    ' Установить основные параметры для оптимизации выполнения макросов
-'    SetOptimizeMode sh, ActCell
-'
-'    ' Есть ли колонка для обработки
-'    Set f = sh.Rows(1).Find(Event_Name, LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
-'    If Not f Is Nothing Then
-'        ' Применить формулы
-'        ApplyFormulas sh, f.Column
-'        ' Развернуть все
-'        Set f2 = sh.Columns(f.Column).Find("Expand", LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
-'        If Not f2 Is Nothing Then
-'            Application.Run "MNU_eTOOLS_EXPAND"
-'            ' Установить основные параметры для оптимизации выполнения макросов
-'            SetOptimizeMode sh, ActCell
-'        End If
-'    End If
-'    ' Отрегистрировать пользователя от всех форм
-'    'Locks_OffBook
-'    'Call prepareWorkspace
-'
-'    ' Снять основные параметры для оптимизации выполнения макросов
-'    SetNormalMode sh, ActCell
 
-    'call for workstatus report
-    Call prepareWorkspace
-
-    AFTER_REFRESH = True
-End Function
 '
 'Function BEFORE_SEND(argument As String)
 '    Event_Name = "BEFORE_SEND"
@@ -333,26 +532,7 @@ End Function
 '        If mb = vbNo Then Check = 1
 '    End If
 'End Function
-'
-'Public Function Pass(sh)
-''
-'' Прочитать пароль на листе
-''
-'    ' Поиск ячейки-маркера
-'    Set f = sh.Cells.Find("PasswordBPC", LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
-'    If Not f Is Nothing Then
-'        Set f = sh.Cells(f.Row + 1, f.Column)
-'        Pass = f.Value
-'        If sh.ProtectContents = False Then
-'            f.NumberFormat = ";;;"
-'            f.Locked = True
-'            f.FormulaHidden = True
-'            Set r = Range(sh.Cells(f.Row - 1, f.Column), f)
-'            r.Interior.ThemeColor = xlThemeColorAccent1
-'            r.Interior.TintAndShade = 0.4
-'        End If
-'    End If
-'End Function
+
 '
 'Private Sub SetOptimizeMode(sh, ActCell)
 ''
@@ -881,37 +1061,7 @@ End Function
 '    Application.Calculation = xlCalculationAutomatic
 'End Sub
 '
-'Private Sub ProtectBook()
-''
-'' Установить пароль на все листы рабочей книги
-''
-'    Dim argument As String
-'    ' Цикл по всем листам книги
-'    For i = 1 To ActiveWorkbook.Sheets.Count
-'        If Sheets(i).Visible = xlSheetVisible Then
-'            Sheets(i).Activate
-'            t = AFTER_EXPAND(argument)
-'        End If
-'    Next i
-'End Sub
-'
-'Private Sub UnProtectBook()
-''
-'' Снять пароль со всех листов рабочей книги
-''
-'    Event_Name = "BEFORE_"
-'    ' Установить основные параметры для оптимизации выполнения макросов
-'    SetOptimizeMode sh, ActCell
-'    ' Цикл по всем листам книги
-'    For i = 1 To ActiveWorkbook.Sheets.Count
-'        If Sheets(i).Visible = True And Sheets(i).ProtectContents = True Then
-'            Sheets(i).Unprotect ActCell.Value
-'        End If
-'    Next i
-'    sh.Activate
-'    ' Снять основные параметры для оптимизации выполнения макросов
-'    SetNormalMode sh, ActCell
-'End Sub
+
 '
 'Private Sub NewRows(nt As Variant)
 ''
@@ -1135,68 +1285,7 @@ End Function
 '    ChangeRow 9
 'End Sub
 '
-'Private Function SAPlogon()
-''
-'' Вход в систему SAP
-''
-'    Application.StatusBar = "Соединение с сервером..."
-'    SAPlogon = False
-'    On Error Resume Next
-'    Workbooks.Open "C:\PROGRAM FILES\COMMON FILES\SAP SHARED\BW\sapbex.xla"
-'    If Err.Number Then MsgBox "Не найден файл sapbex.xla", vbCritical, "Подключение к серверу SAP": Exit Function
-'    On Error GoTo 0
-'    Set myConnection = Run("SAPBEX.XLA!SAPBEXgetConnection")
-'    With myConnection
-'        Select Case Application.Run("EVSVR")
-'            Case "HTTP://172.16.34.1"
-'                SapServer = "172.16.10.4"
-'                .Client = "100"
-'            Case "HTTP://172.16.10.12"
-'                SapServer = "172.16.10.12"
-'                .Client = "200"
-'            Case "HTTP://172.16.30.6"
-'                SapServer = "172.16.30.6"
-'                .Client = "300"
-'            Case "HTTP://V-SAP-DBI"
-'                SapServer = "172.16.10.4"
-'                .Client = "100"
-'            Case "HTTP://V-SAP-QBI"
-'                SapServer = "172.16.10.12"
-'                .Client = "200"
-'            Case "HTTP://V-SAP-PBI"
-'                SapServer = "172.16.30.6"
-'                .Client = "300"
-'        End Select
-'        .ApplicationServer = SapServer
-'        .SystemNumber = "00"
-'        .User = "WF-COMM"
-'        .Password = "P@ssw0rd"
-'        .Language = "en"
-'        .logon 0, True
-'        If .IsConnected <> 1 Then
-'            .logon 0, False
-'            If .IsConnected <> 1 Then MsgBox "Соединение с системой установить не удалось", vbCritical, "Подключение к серверу SAP": Exit Function
-'        End If
-'    End With
-'    SAPlogon = True
-'    Application.StatusBar = "Соединение с сервером успешно установлено"
-'End Function
-'
-'Private Function SAPconnect(fm_name)
-''
-'' Подключение к системе SAP, создание объекта Функциональный модуль
-''
-'    'SAPconnect = False
-'    If SAPlogon Then
-'        Set sap = CreateObject("SAP.Functions")
-'        sap.Connection = myConnection
-'        On Error Resume Next '?
-'        Set fm = sap.Add(fm_name)
-'        If Err.Number Then MsgBox "Функциональный модуль " & fm_name & " не найден", vbCritical, "Подключение к серверу SAP": Exit Function
-'        On Error GoTo 0 '?
-'        SAPconnect = True
-'    End If
-'End Function
+
 '
 'Private Sub Locks(ds, mode)
 ''
