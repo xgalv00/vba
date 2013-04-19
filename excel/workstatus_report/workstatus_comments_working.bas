@@ -205,13 +205,41 @@ Sub prepareWorkspace()
     Call create_comboBxs
     
     Call readComments
-
+'    keyColl.Add "По умолчанию"
+'    keyColl.Add "Ввод начат"
+'    keyColl.Add "Данные внесены"
+'    keyColl.Add "Данные содержат ошибки"
+'    keyColl.Add "Принято"
+'
+'    colorColl.Add 65
+'    colorColl.Add 255
+'    colorColl.Add 255
+'    colorColl.Add 255
+'    colorColl.Add 255
+'
+'    For i = 1 To keyColl.Count
+'        Call setFormatConditions("=" & keyColl(i), colorColl(i))
+'    Next i
     Call hide_everything
 
 
 End Sub
 
-
+'Private Sub setFormatConditions(statText As String, сolorInt As Long)
+'
+'    wStatSht.Activate
+'    workRange.Select
+'    Selection.FormatConditions.Add Type:=xlTextString, String:=statText, TextOperator:=xlContains
+'    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+'    Selection.FormatConditions(1).Interior.Color = 254
+'
+'        .PatternColorIndex = xlAutomatic
+'
+'        .TintAndShade = 0
+'    End With
+'    Selection.FormatConditions(1).StopIfTrue = False
+'
+'End Sub
 Private Sub unhide_everything()
 
     Application.ScreenUpdating = False

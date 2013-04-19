@@ -19,12 +19,15 @@ Sub test()
     
     'global variables assignment.
     'folderPath is where files are located.
-    folderPath = "C:\Users\GalkinVa\Documents\my_macroses\excel\helpers\bb_ugol_copy\"
+    folderPath = "C:\Users\GalkinVa\Documents\my_macroses\excel\workstatus_report\"
     'confFileName is folderPath with the name of config file
     confFileName = folderPath & "conf.txt"
     
+    
     'switch between tested functionality
     If eximMode Then
+        Call recreate_conf_file 'creates new conf.txt, if it has already existed then deletes it and create.
+        
         For Each comp In ThisWorkbook.VBProject.VBComponents
             If comp.Name <> "exim_test" And (comp.Type <> vbext_ct_Document) Then
                 Call exportTest(comp.Name)
@@ -45,9 +48,7 @@ Sub exportTest(VBComp As String)
     'Call exportTest(folderPath,vbCompName)
     Dim VBCompObj As Object
     Dim nameForConf As String
-    
-    'replace this assert statement by exception
-    Debug.Assert configExists(folderPath)
+
     '@todo add exception if vbComp with given name isn't exist in this workbook
     Set VBCompObj = ThisWorkbook.VBProject.VBComponents.Item(VBComp)
     
@@ -123,11 +124,7 @@ Private Function configExists(folderPath As String) As Boolean
     '>>>configExists(invalidPath)
     'False
     
-    Dim confFileName As String
-    
     configExists = False
-    
-    confFileName = folderPath & "conf.txt"
     
     If Dir(folderPath) = "" Then 'check for folder existence
         Exit Function
@@ -225,9 +222,9 @@ Private Sub addSaveNote(exportedFName As String)
     '>>>addSaveNote(folderPath,exportedFName)
     '
     'If record about this file is already in conf.txt, do nothing
-    If isInConfig(exportedFName) Then
-        Exit Sub
-    End If
+'    If isInConfig(exportedFName) Then
+'        Exit Sub
+'    End If
     
     Open confFileName For Append As #1
     
@@ -327,3 +324,13 @@ Private Function getCompExtension(VBComp As Object) As String
     End Select
     
 End Function
+
+Private Sub recreate_conf_file()
+    'replace this assert statement by exception
+    If configExists(folderPath) Then
+        Kill confFileName
+    End If
+    
+    Open confFileName For Output As 1
+    Close #1
+End Sub
