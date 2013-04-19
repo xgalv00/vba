@@ -45,7 +45,7 @@ Sub readComments()
                 If Range(tmpCell.Address).Comment Is Nothing Then
                     Range(tmpCell.Address).AddComment
                 End If
-                Range(tmpCell.Address).Comment.Text Text:=tmpCell.Value
+                Range(tmpCell.Address).Comment.text text:=tmpCell.Value
                 comDraftSht.Activate
                 
             End If
@@ -84,7 +84,7 @@ Sub writeComments()
             If Not tmpCell.Comment Is Nothing Then
                 'Debug.Print tmpCell.Value
                 
-                tmpStr = Range(tmpCell.Address).Comment.Text
+                tmpStr = Range(tmpCell.Address).Comment.text
                 comDraftSht.Activate
                 Cells(tmpCell.Row, (tmpCell.Column + workRange.Columns.Count)).Value = tmpStr
                 Cells(tmpCell.Row, (tmpCell.Column + workRange.Columns.Count)).Select

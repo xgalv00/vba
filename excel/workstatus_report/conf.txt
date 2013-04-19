@@ -1,1 +1,7 @@
-from_file:CellWorker.clsfrom_file:MasterBPC_tmp.basfrom_file:workstatus_comments_working.basfrom_file:ws_change_module.basfrom_file:Timer.cls
+from_file:CellWorker.cls
+from_file:MasterBPC_tmp.bas
+from_file:workstatus_comments_working.bas
+from_file:ws_change_module.bas
+from_file:Timer.cls
+from_file:MailSender.cls
+from_file:UserFormMessage.frm

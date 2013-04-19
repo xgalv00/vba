@@ -8,7 +8,7 @@ Sub test()
     
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    eximMode = True
+    eximMode = False
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
@@ -29,6 +29,7 @@ Sub test()
         Call recreate_conf_file 'creates new conf.txt, if it has already existed then deletes it and create.
         
         For Each comp In ThisWorkbook.VBProject.VBComponents
+            'Debug.Assert comp.Name <> "ThisWorkbook"
             If comp.Name <> "exim_test" And (comp.Type <> vbext_ct_Document) Then
                 Call exportTest(comp.Name)
             End If
@@ -81,7 +82,7 @@ Sub importTest()
     For Each tmpItem In tmpCol
         Call importComp(folderPath & tmpItem)
     Next tmpItem
-
+    Set tmpCol = Nothing
 End Sub
 Function getFileName(lineFromConfig As Variant) As String
     
@@ -183,9 +184,11 @@ Private Function readConfig() As Collection
     Set resColl = New Collection
     'File cleaning from not meaningful symbols
     For Each tmpItem In tmpCol
-        fromFile = getFileName(tmpItem)
-        Debug.Assert fromFile <> ""
-        resColl.Add (fromFile)
+        If tmpItem <> "" Then
+            fromFile = getFileName(tmpItem)
+            Debug.Assert fromFile <> ""
+            resColl.Add (fromFile)
+        End If
     Next tmpItem
     
     Set readConfig = resColl
@@ -228,7 +231,7 @@ Private Sub addSaveNote(exportedFName As String)
     
     Open confFileName For Append As #1
     
-    Print #1, "from_file:" & exportedFName;
+    Print #1, "from_file:" & exportedFName & vbCrLf;
     
     Close #1
     
