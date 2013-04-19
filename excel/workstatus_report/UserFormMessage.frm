@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Public msgWasSent As Boolean
 
 Private Sub CommandButtonCancel_Click()
@@ -23,7 +24,7 @@ End Sub
 
 Private Sub CommandButtonSend_Click()
     '
-    Dim mailSndr As New MailSender
+    'Dim mailSndr As New MailSender
     msgWasSent = True
     Hide
     '

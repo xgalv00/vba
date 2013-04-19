@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Option Explicit
-Dim oldVal As String
+Dim oldVal As Variant
 
 Private Sub Worksheet_Change(ByVal Target As Range)
     Dim mailSndr As New MailSender
@@ -18,7 +18,8 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         If isInWorkrange(Target) Then 'record_change procedure will be called only if changed cell lays in appropriate range
             isAuthorized = True
             If isAuthorized Then
-                If mailSndr.sendMsg(Target.Address, oldVal) Then
+                '@todo add check that value is one range
+                If mailSndr.sendMsg(Target.Address, CStr(oldVal)) Then
                     If record_change(Target.Address) Then
                         Call mailSndr.completeSendMsg
                         MsgBox "Approval text"

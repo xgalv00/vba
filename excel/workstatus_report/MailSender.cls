@@ -12,6 +12,9 @@ Dim tmpText As String
 Dim tmpSubject As String
 Dim compName As String, formName As String, perName As String
 Dim workStatSht As Worksheet
+Dim f As UserFormMessage
+
+
 
 
 Sub SendStatusMail(addresList, text, subject)
@@ -40,7 +43,6 @@ Sub SendStatusMail(addresList, text, subject)
 End Sub
 Sub ShowSendMessage()
     '
-    Dim f As UserFormMessage
     Set f = New UserFormMessage
     '
     f.TextBoxSubject = tmpSubject
@@ -54,29 +56,32 @@ End Sub
 
 Public Function sendMsg(targAddr As String, oldVal As String) As Boolean
     Dim tmpRng As Range
+    
     Set workStatSht = ActiveWorkbook.Sheets("Workstatus")
     Set tmpRng = workStatSht.Range(targAddr)
     Call initVars(tmpRng)
     tmpText = collectMsg(tmpRng.Value, oldVal)
-    tmpaddressList = getAprAddr()
+    tmpaddresList = getAprAddr()
     tmpSubject = "Рассылка по поводу изменения статуса"
-    If UserFormMessage.msgWasSent Then
+    Call ShowSendMessage
+    If f.msgWasSent Then
         sendMsg = True
     End If
 End Function
 
 Public Function completeSendMsg() As Boolean
     Debug.Assert False
-    mailSndr.SendStatusMail UserFormMessage.TextBoxTo.Value, UserFormMessage.TextBoxText.Value, UserFormMessage.TextBoxSubject.Value
+    SendStatusMail f.TextBoxTo.Value, f.TextBoxText.Value, f.TextBoxSubject.Value
+    Unload f
     Set workStatSht = Nothing
 End Function
 
 Private Function collectMsg(newVal As String, oldVal As String) As String
-    collectMsg = "Статус для компании: " & compName & " формы: " & formName & " периода: " & perName & " был изменен с " & oldVal & "" & newVal
+    collectMsg = "Статус для компании: " & compName & " формы: " & formName & " периода: " & perName & " был изменен со статуса " & oldVal & " на " & newVal
 End Function
 
 Private Function getAprAddr() As String
-    getAprAddr = "galkinva@dtek.com"
+    getAprAddr = "Chernokalskayaea@dtek.com" '"galkinva@dtek.com"
     Debug.Assert False
 End Function
 
