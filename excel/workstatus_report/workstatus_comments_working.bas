@@ -2,6 +2,7 @@ Attribute VB_Name = "workstatus_comments_working"
 Public technicalChange As Boolean
 Dim statusWB As Workbook
 Dim wStatSht As Worksheet, comDraftSht As Worksheet, wStatDraftSht As Worksheet
+Dim msfoTableSht As Worksheet, usrTableSht As Worksheet
 Dim workRange As Range
 
 Sub refreshSht()
@@ -163,6 +164,8 @@ Attribute initialize_WS_variables.VB_ProcData.VB_Invoke_Func = " \n14"
     Set wStatSht = statusWB.Sheets("WorkStatus")
     Set wStatDraftSht = statusWB.Sheets("WorkStatusDraft")
     Set comDraftSht = statusWB.Sheets("CommentsDraft")
+    Set usrTableSht = statusWB.Sheets("user_table")
+    Set msfoTableSht = statusWB.Sheets("msfo_table")
     'range address of statuses
     Set workRange = calcWorkRange
     'workRange.Select
@@ -216,7 +219,7 @@ Private Function Pass(sh)
 ' Прочитать пароль на листе
 '
     ' Поиск ячейки-маркера
-    Set f = sh.Cells.Find("PasswordBPC", LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
+    Set f = sh.Cells.find("PasswordBPC", LookIn:=xlFormulas, LookAt:=xlWhole, MatchCase:=False)
     If Not f Is Nothing Then
         Set f = sh.Cells(f.Row + 1, f.Column)
         Pass = f.Value
@@ -239,6 +242,9 @@ Private Sub unhide_everything()
     comDraftSht.Visible = xlSheetVisible
     Sheets("Helper").Visible = xlSheetVisible
     wStatDraftSht.Visible = xlSheetVisible
+    usrTableSht.Visible = xlSheetVisible
+    msfoTableSht.Visible = xlSheetVisible
+
 
 End Sub
 
@@ -247,6 +253,8 @@ Private Sub hide_everything()
     comDraftSht.Visible = xlSheetVeryHidden
     Sheets("Helper").Visible = xlSheetVeryHidden
     wStatDraftSht.Visible = xlSheetVeryHidden
+    usrTableSht.Visible = xlSheetVeryHidden
+    msfoTableSht.Visible = xlSheetVeryHidden
     Application.ScreenUpdating = True
     Application.EnableEvents = True
 
@@ -363,3 +371,19 @@ Function record_change(changeCellAddr As String) As Boolean
         record_change = True
     End If
 End Function
+
+Function isAuthorized(changedCell As Range, changer As UsrInfo) As Boolean
+    Dim compName As String
+    
+    compName = workStatSht.Cells(10, changedCell.Column).Value
+
+    
+    If Not changer.isCompanyInUsrCompColl(compName) Then
+        Exit Function
+    End If
+    If Not changer.isUsrHasApprType(changedCell.Value) Then
+        Exit Function
+    End If
+    isAuthorized = True
+End Function
+
