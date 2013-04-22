@@ -236,26 +236,27 @@ End Function
 
 
 Sub unhide_everything()
-
+    Call initialize_WS_variables
+    
     Application.ScreenUpdating = False
     Application.EnableEvents = False
+    wStatSht.Unprotect Pass(wStatSht)
     comDraftSht.Visible = xlSheetVisible
     Sheets("Helper").Visible = xlSheetVisible
     wStatDraftSht.Visible = xlSheetVisible
     usrTableSht.Visible = xlSheetVisible
     msfoTableSht.Visible = xlSheetVisible
-    ActiveWorkbook.Unprotect Pass(wStatSht)
 
 End Sub
 
 Sub hide_everything()
-
+    Call initialize_WS_variables
     comDraftSht.Visible = xlSheetVeryHidden
     Sheets("Helper").Visible = xlSheetVeryHidden
     wStatDraftSht.Visible = xlSheetVeryHidden
     usrTableSht.Visible = xlSheetVeryHidden
     msfoTableSht.Visible = xlSheetVeryHidden
-    ActiveWorkbook.Protect Pass(wStatSht)
+    wStatSht.Protect Pass(wStatSht)
     Application.ScreenUpdating = True
     Application.EnableEvents = True
 
