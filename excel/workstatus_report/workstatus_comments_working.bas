@@ -235,7 +235,7 @@ Private Function Pass(sh)
 End Function
 
 
-Private Sub unhide_everything()
+Sub unhide_everything()
 
     Application.ScreenUpdating = False
     Application.EnableEvents = False
@@ -244,17 +244,18 @@ Private Sub unhide_everything()
     wStatDraftSht.Visible = xlSheetVisible
     usrTableSht.Visible = xlSheetVisible
     msfoTableSht.Visible = xlSheetVisible
-
+    ActiveWorkbook.Unprotect Pass(wStatSht)
 
 End Sub
 
-Private Sub hide_everything()
+Sub hide_everything()
 
     comDraftSht.Visible = xlSheetVeryHidden
     Sheets("Helper").Visible = xlSheetVeryHidden
     wStatDraftSht.Visible = xlSheetVeryHidden
     usrTableSht.Visible = xlSheetVeryHidden
     msfoTableSht.Visible = xlSheetVeryHidden
+    ActiveWorkbook.Protect Pass(wStatSht)
     Application.ScreenUpdating = True
     Application.EnableEvents = True
 
@@ -350,7 +351,7 @@ Function record_change(changeCellAddr As String) As Boolean
     Dim compValAddr As String
     Dim tmpArray As Variant
     
-    Call unhide_everything
+    'Call unhide_everything
     Set srcWSht = Sheets("WorkStatusDraft")
     'Set destWSht = Sheets("Changed1")
     srcCellFormula = srcWSht.Range(changeCellAddr).Formula
@@ -366,24 +367,24 @@ Function record_change(changeCellAddr As String) As Boolean
     statusVal = Range(changeCellAddr).Value
     
     Call wsChangePrep(compVal, dsVal, timeVal, statusVal)
-    Call hide_everything
+    'Call hide_everything
     If ws_change_module.statusChanged Then
         record_change = True
     End If
 End Function
 
-Function isAuthorized(changedCell As Range, changer As UsrInfo) As Boolean
+Function isAuthorized(changedCell As Range) As Boolean
     Dim compName As String
     
-    compName = workStatSht.Cells(10, changedCell.Column).Value
+    compName = Sheets("WorkStatus").Cells(10, changedCell.Column).Value
 
     
-    If Not changer.isCompanyInUsrCompColl(compName) Then
-        Exit Function
-    End If
-    If Not changer.isUsrHasApprType(changedCell.Value) Then
-        Exit Function
-    End If
-    isAuthorized = True
+'    If Not isCompanyInUsrCompColl(compName) Then
+'        Exit Function
+'    End If
+'    If Not isUsrHasApprType(changedCell.Value) Then
+'        Exit Function
+'    End If
+    isAuthorized = isCompanyInUsrCompColl(compName) And isUsrHasApprType(changedCell.Value)
 End Function
 

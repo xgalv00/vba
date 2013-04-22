@@ -1,12 +1,4 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
 Attribute VB_Name = "UsrInfo"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
 Dim usrName As String
 Dim usrLog As String
 Public usrType As String
@@ -15,21 +7,28 @@ Dim compColl As Collection
 Dim shtToWork As Worksheet
 Dim cachedSht As Worksheet
 
-Function usr_init() As UsrInfo
-    Dim usr As New UsrInfo
+Function usr_init() As Collection
+    Dim tmpColl As New Collection
     Set cachedSht = ActiveSheet
     usrLog = Environ("USERNAME")
     Call find_usr
-    Set usr_init = usr
+    tmpColl.Add usrLog, "login"
+    tmpColl.Add usrName, "name"
+    tmpColl.Add usrType, "type"
+    tmpColl.Add compColl, "company"
+    tmpColl.Add usrEmail, "mail"
+    Set usr_init = tmpColl
 End Function
 
 
 Private Sub find_usr()
     Dim foundCell As Range
+    Dim nextFoundCell As Range
+    Dim foundCellAddr As String
     'examine company's owners
     Sheets("user_table").Select
     Columns("C:C").Select
-    Set foundCell = Selection.find(What:=usrLog, After:=ActiveCell, LookIn:=xlFormulas _
+    Set foundCell = Selection.find(what:=usrLog, after:=ActiveCell, LookIn:=xlFormulas _
         , LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
         MatchCase:=False, SearchFormat:=False)
     If Not foundCell Is Nothing Then
@@ -38,9 +37,11 @@ Private Sub find_usr()
         usrName = Cells(foundCell.Row, foundCell.Column - 1).Value
         usrEmail = Cells(foundCell.Row, foundCell.Column + 1).Value
         Set compColl = New Collection
+        foundCellAddr = foundCell.Address
         Do While Not foundCell Is Nothing
             compColl.Add Cells(foundCell.Row, foundCell.Column - 2).Value
             Set foundCell = Selection.FindNext
+            If foundCellAddr = foundCell.Address Then Exit Do
         Loop
         Exit Sub
     End If
@@ -48,7 +49,7 @@ Private Sub find_usr()
     'examine msfo users
     Sheets("msfo_table").Select
     Columns("C:C").Select
-    Set foundCell = Selection.find(What:=usrLog, After:=ActiveCell, LookIn:=xlFormulas _
+    Set foundCell = Selection.find(what:=usrLog, after:=ActiveCell, LookIn:=xlFormulas _
         , LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
         MatchCase:=False, SearchFormat:=False)
         
@@ -58,9 +59,11 @@ Private Sub find_usr()
         usrName = Cells(foundCell.Row, foundCell.Column - 1).Value
         usrEmail = Cells(foundCell.Row, foundCell.Column + 1).Value
         Set compColl = New Collection
+        foundCellAddr = foundCell.Address
         Do While Not foundCell Is Nothing
             compColl.Add Cells(foundCell.Row, foundCell.Column - 2).Value
             Set foundCell = Selection.FindNext
+            If foundCellAddr = foundCell.Address Then Exit Do
         Loop
         Exit Sub
     Else
@@ -74,6 +77,7 @@ Function isCompanyInUsrCompColl(compName As String) As Boolean
     For Each comp In compColl
         If comp = compName Then
             isCompanyInUsrCompColl = True
+            Exit Function
         End If
     Next comp
     
@@ -87,3 +91,5 @@ Function isUsrHasApprType(statVal As String) As Boolean
         isUsrHasApprType = True
     End If
 End Function
+
+
