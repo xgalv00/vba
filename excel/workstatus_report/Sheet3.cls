@@ -30,11 +30,25 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                 If mailSndr.sendMsg(Target.Address, CStr(oldVal), changer("name")) Then
                     If record_change(Target.Address) Then
                         Call mailSndr.completeSendMsg
-                        MsgBox "Approval text"
+                        MsgBox "Статус был изменен, и если этому статусу необходима отправка уведомления, то оно было отправлено."
+                    Else
+                        MsgBox "Статус не может быть изменен, потому что у вас не хватает полномочий"
+                        If oldVal <> "" Then
+                            Target.Value = oldVal
+                        End If
+                    End If
+                Else
+                    MsgBox "Статус не был изменен, сообщение не отправлено"
+                    If oldVal <> "" Then
+                        Target.Value = oldVal
                     End If
                 End If
             Else
                 Debug.Assert False
+                MsgBox "Статус не может быть изменен, потому что у вас не хватает полномочий"
+                If oldVal <> "" Then
+                    Target.Value = oldVal
+                End If
                 'user not authorized
             End If
             Call hide_everything

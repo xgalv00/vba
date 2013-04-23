@@ -13,9 +13,8 @@ Dim tmpSubject As String
 Dim compName As String, formName As String, perName As String, formNum As String
 Dim statVal As String
 Dim workStatSht As Worksheet
+Dim techSend As Boolean
 Dim f As UserFormMessage
-
-
 
 
 Sub SendStatusMail(addresList, text, subject)
@@ -70,6 +69,7 @@ Public Function sendMsg(targAddr As String, oldVal As String, usrName As String)
     'tmp stub for approved and started i don't know to whom i should send emails.
     If tmpaddresList = "" Then
         sendMsg = True
+        techSend = True
         Exit Function
     ElseIf tmpaddresList = "Error" Then
         Debug.Assert False
@@ -80,13 +80,16 @@ Public Function sendMsg(targAddr As String, oldVal As String, usrName As String)
     Call ShowSendMessage
     If f.msgWasSent Then
         sendMsg = True
+        techSend = False
     End If
 End Function
 
 Public Function completeSendMsg() As Boolean
-    Debug.Assert False
-    SendStatusMail f.TextBoxTo.Value, f.TextBoxText.Value, f.TextBoxSubject.Value
-    Unload f
+    'Debug.Assert False
+    If Not techSend Then
+        SendStatusMail f.TextBoxTo.Value, f.TextBoxText.Value, f.TextBoxSubject.Value
+        Unload f
+    End If
     Set workStatSht = Nothing
 End Function
 

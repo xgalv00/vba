@@ -354,6 +354,7 @@ Function record_change(changeCellAddr As String) As Boolean
     
     'Call unhide_everything
     Set srcWSht = Sheets("WorkStatusDraft")
+    srcWSht.Select
     'Set destWSht = Sheets("Changed1")
     srcCellFormula = srcWSht.Range(changeCellAddr).Formula
     'destWSht.Activate
@@ -366,7 +367,7 @@ Function record_change(changeCellAddr As String) As Boolean
     compVal = Range(compValAddr).Value
     Sheets("WorkStatus").Activate
     statusVal = Range(changeCellAddr).Value
-    
+    Debug.Assert compVal <> "" Or dsVal <> "" Or timeVal <> "" Or statusVal <> ""
     Call wsChangePrep(compVal, dsVal, timeVal, statusVal)
     'Call hide_everything
     If ws_change_module.statusChanged Then

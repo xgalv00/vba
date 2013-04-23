@@ -2,6 +2,8 @@ Attribute VB_Name = "ws_change_module"
 Dim IE As Object
 Dim statusText As String
 Public statusChanged As Boolean
+Dim testUrl As String
+
 
 Sub wsChangePrep(inCompVal As String, inDsVal As String, inTimeVal As String, inStatus As String)
     'prepares given values for use in ws changing procedure
@@ -10,7 +12,7 @@ Sub wsChangePrep(inCompVal As String, inDsVal As String, inTimeVal As String, in
     Dim url As String
     Dim tmpStr As String
     
-   
+   Debug.Assert inCompVal <> "" Or inDsVal <> "" Or inTimeVal <> "" Or inStatus <> ""
     'encode values for Internet usage
     compValue = "%3A" & dummyEncUrl(inCompVal) & "%3B"
     dsValue = "%3A" & dummyEncUrl(inDsVal) & "%3B"
@@ -21,6 +23,7 @@ Sub wsChangePrep(inCompVal As String, inDsVal As String, inTimeVal As String, in
     
     'create url
     url = "http://v-sap-qbi/OSOFT/Landing.aspx?PAGEMODE=WORKSTATUS&appset=DTEK&app=CONSOLIDATION&CVDATA=ACTIVITY%3ABA000%3BCategory%3AAD%3BCOMPANY" & compValue & "CONTRACT%3ACON%5FNONE%3BCREDITQUALITY%3AKK%5FALL%3BCREDITRATING%3AKR%5FALL%3BCURRENCY%3ACUR%5FALL%3BC%5FACCT%3ADB101010%3BC%5FACCT%5FC%3ACCOA%5FALL%3BDATASRC" & dsValue & "DEBTSUBJ%3APZ%5FALL%3BFLOW%3ARF%3BGOODS%3AGD%5FALL%3BGROUPS%3ANON%5FGROUP%3BIFRS7%3AZD%5FALL%3BPARTNER%3AP70000002%3BPARTNER%5FC%3ACPAR%5FALL%3BPERIOD1%5FPAY%3APER1%5FALL%3BSEGMENT%3ASG%5FALL%3BSERIESCB%3ASCB%5FALL%3BSTCKKND%3ASTC%5FALL%3BTERM1%5FCLEAR%3ASR1%5FALL%3BTERM2%5FBEGIN%3ASR2%5FALL%3BTERM3%5FOTHER%3ASR3%5FALL%3BTime" & timeValue & "MEASURES%3AYTD"
+    testUrl = url
     status = 0
     If StrComp("APPROVED", inStatus) = 0 Then
         status = 4
@@ -108,7 +111,7 @@ Private Sub IE_Automation(url As String, status As Integer)
     Debug.Assert Not IE Is Nothing 'IE should be installed on user's computer and working properly
     
     ' Send the work status data To URL As GET request
-    IE.Navigate url
+    IE.Navigate testUrl
      
      ' You can uncoment Next line To see work status results
     'IE.Visible = True
@@ -131,7 +134,8 @@ Private Sub IE_Automation(url As String, status As Integer)
     objCollection.Disabled = False 'without this Approved status selection doesn't work properly
     objCollection.Click
     
-    'sanity check of actual status changing
+
+    
     statusChanged = isStatusChanged()
  
     ' Clean up
@@ -176,7 +180,7 @@ Private Function isStatusChanged() As Boolean
     Set objCollection = myGetByID("WShtabCurStatus")
     
     Debug.Assert Not objCollection Is Nothing
-    
+    'IE.Visible = True
     tmpStr = objCollection.innerText
     'statusText is global variable and contains inStatus parameter from wsChangePrep.
     If InStr(1, tmpStr, statusText) <> 0 Then
