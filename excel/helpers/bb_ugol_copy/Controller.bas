@@ -249,3 +249,54 @@ Private Sub unhide_everything()
     cmbxCondSht.Visible = xlSheetVisible
     
 End Sub
+
+
+'check application entry code
+
+Sub startNewCheckMine_click()
+''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''
+    'entry point for application
+    Call initialize_constValColl
+    Debug.Assert Not constValColl Is Nothing And constValColl.Count > 0
+    Set destWB = Workbooks(constValColl("destWBName"))
+    Set ctrlGenSht = destWB.Sheets(constValColl("ctrlGenShtName"))
+    Set cmbxCondSht = destWB.Sheets(constValColl("cmbxCondShtName"))
+    Call unhide_everything
+    copyMineUF.copyBtn.Enabled = False
+    copyMineUF.copyBtn.Visible = True
+    copyMineUF.checkBtn.Visible = True
+    copyMineUF.checkBtn.Enabled = True
+    copyMineUF.Show
+End Sub
+
+Sub checkBtnClicked()
+    Dim shtName As String
+    Dim tmpRng As Range
+    Dim clw As New CellWorker
+    
+    ctrlGenSht.Activate
+    If workRangeUpLeftCell Is Nothing Then
+        Set workRangeUpLeftCell = Range(constValColl("workRangeUpLeftCell"))
+    End If
+    Set tmpRng = workRangeUpLeftCell
+    Do While tmpRng.value <> ""
+        ctrlGenSht.Activate
+        shtName = Cells(1, tmpRng.Column)
+        Debug.Assert shtName <> ""
+        Call bbUgol_copyPaste.checkMineRange(shtName, tmpRng.value, constValColl)
+        Set tmpRng = clw.move_down(tmpRng)
+    Loop
+        
+    Set tmpRng = Nothing
+    Set tmpRng = clw.move_right(workRangeUpLeftCell)
+    'loop that helps to skip some sheets
+    Do While tmpRng.value = "" And Cells(1, tmpRng.Column).value <> ""
+        Set tmpRng = clw.move_right(tmpRng)
+    Loop
+    If tmpRng.value <> "" Then
+        Set workRangeUpLeftCell = tmpRng
+        Call checkBtnClicked 'recursive call
+    End If
+    
+End Sub

@@ -119,16 +119,30 @@ End Function
 
 
 
-Sub checkMineRange()
-    Dim tmpSht As Worksheet
+Sub checkMineRange(shtName As String, relToRngAddr As String, constValColl As Collection)
+    
+    Dim ctrlRng As Range
+    Dim addrForCopy As String
+    
     Set addrColl = Nothing
-    Set tmpSht = Sheets("control_table_ÁïÄÐ_110_160_ø")
-    tmpSht.Visible = xlSheetVisible
-    tmpSht.Select
-    Set relToRange = Range("E215")
-    Application.EnableEvents = False
-    Call processMineRange(Range("A1"))
-    Application.EnableEvents = True
+    Set destWB = Workbooks(constValColl("destWBName"))
+    
+    'Set srcWSht = srcWB.Sheets(shtName)
+    Set ctrlSht = destWB.Sheets(constValColl("sht_control_table_prefix") & shtName)
+    'Set destWSht = destWB.Sheets(shtName)
+    
+    Set ctrlRng = ctrlSht.Range(constValColl("upLeftCell_for_ctrl_sht")) 'upLeftCell for mine range
+    Set relToRange = ctrlSht.Range(relToRngAddr)
+    
+    'important
+    Call unhide_everything
+    ctrlSht.Activate
+    
+    Call processMineRange(ctrlRng)
+    
+    Call hide_everything
+
+    
 End Sub
 
 'check computed addresses
