@@ -267,6 +267,10 @@ Sub startNewCheckMine_click()
     copyMineUF.copyBtn.Visible = True
     copyMineUF.checkBtn.Visible = True
     copyMineUF.checkBtn.Enabled = True
+    copyMineUF.copyStyleChkBx.Enabled = False
+    copyMineUF.copyStyleChkBx.value = True
+    copyMineUF.copyStyleChkBx.Visible = False
+    
     copyMineUF.Show
 End Sub
 
