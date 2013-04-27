@@ -5,10 +5,12 @@ Dim confFileName As String
 Sub test()
     'Starting point for export import macro
     Dim eximMode As Boolean 'true is export, false is import
+    Dim removeOnly As Boolean
     
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    eximMode = True
+    eximMode = False
+    removeOnly = False
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
@@ -27,7 +29,7 @@ Sub test()
     If eximMode Then
         For Each comp In ThisWorkbook.VBProject.VBComponents
             If comp.Name <> "exim_test" And (comp.Type <> vbext_ct_Document) Then
-                Call exportTest(comp.Name)
+                Call exportTest(comp.Name, removeOnly)
             End If
         Next comp
     Else
@@ -35,7 +37,7 @@ Sub test()
     End If
 End Sub
 
-Sub exportTest(VBComp As String)
+Sub exportTest(VBComp As String, removeOnly As Boolean)
     '
     '(string)->None
     '
@@ -46,16 +48,19 @@ Sub exportTest(VBComp As String)
     Dim VBCompObj As Object
     Dim nameForConf As String
     
-    'replace this assert statement by exception
-    Debug.Assert configExists(folderPath)
+    'this flag sometimes useful for all module removal
     '@todo add exception if vbComp with given name isn't exist in this workbook
     Set VBCompObj = ThisWorkbook.VBProject.VBComponents.Item(VBComp)
-    
-    'name of module with extension
-    nameForConf = exportComp(VBCompObj, folderPath)
-    
-    'Creates a record in conf.txt if needed
-    addSaveNote (nameForConf)
+    If Not removeOnly Then
+        'replace this assert statement by exception
+        Debug.Assert configExists(folderPath)
+        
+        'name of module with extension
+        nameForConf = exportComp(VBCompObj, folderPath)
+        
+        'Creates a record in conf.txt if needed
+        addSaveNote (nameForConf)
+    End If
     
     'removes module from project
     ThisWorkbook.VBProject.VBComponents.Remove VBCompObj
