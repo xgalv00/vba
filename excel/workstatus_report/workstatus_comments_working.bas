@@ -375,11 +375,12 @@ Function record_change(changeCellAddr As String) As Boolean
     End If
 End Function
 
-Function isAuthorized(changedCell As Range) As Boolean
+Function isAuthorized(changedCell As Range) As String
     Dim compName As String
+    Dim periodVal As String
     
     compName = Sheets("WorkStatus").Cells(10, changedCell.Column).Value
-
+    periodVal = Sheets("WorkStatus").Range("N3")
     
 '    If Not isCompanyInUsrCompColl(compName) Then
 '        Exit Function
@@ -387,6 +388,45 @@ Function isAuthorized(changedCell As Range) As Boolean
 '    If Not isUsrHasApprType(changedCell.Value) Then
 '        Exit Function
 '    End If
-    isAuthorized = isCompanyInUsrCompColl(compName) And isUsrHasApprType(changedCell.Value)
+    If Not isCompanyInUsrCompColl(compName) Then
+        isAuthorized = "у Вас недостаточно прав для изменения статуса по компании " & compName
+        Exit Function
+    ElseIf Not isUsrHasApprType(changedCell.Value) Then
+        isAuthorized = "у Вас недостаточно прав, чтобы поставить статус " & changedCell.Value
+        Exit Function
+    ElseIf Not isValidPeriod(periodVal) Then
+        isAuthorized = ""
+        Exit Function
+    End If
+    
+    isAuthorized = "ok"
+End Function
+Function isValidPeriod(periodVal As String) As Boolean
+
+    Dim monthCol As New Collection
+    Dim monthArg As String
+    Dim tmpArray As Variant
+
+    For i = 1 To 12
+        monthCol.Add (MonthName(i))
+    Next i
+    tmpArray = Split(periodVal, " ")
+    monthArg = tmpArray(0)
+    
+    isValidPeriod = isExistInCol(monthArg, monthCol)
+End Sub
+
+Private Function isExistInCol(itemVal As String, colForSearch As Collection) As Boolean
+    'loop through given collection and if meet given value return true
+    Dim resBool As Boolean
+    resBool = False
+    itemVal = LCase(Trim(itemVal))
+    For Each Item In colForSearch
+        If itemVal = LCase(Trim(Item)) Then
+            resBool = True
+            Exit For
+        End If
+    Next Item
+    isExistInCol = resBool
 End Function
 

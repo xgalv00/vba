@@ -13,6 +13,7 @@ Dim oldVal As Variant
 Private Sub Worksheet_Change(ByVal Target As Range)
     Dim mailSndr As New MailSender
     Dim changer As Collection
+    Dim isAauthString As String
     
 
     If Not technicalChange Then 'prevent from calling of record_change procedure during programmatical creation of status' list
@@ -25,7 +26,8 @@ Private Sub Worksheet_Change(ByVal Target As Range)
             Call unhide_everything
             Set changer = usr_init()
             Debug.Assert Not changer Is Nothing
-            If isAuthorized(Target) Then
+            isAauthString = isAuthorized(Target)
+            If isAauthString = "ok" Then
                 '@todo add check that value is one range
                 If mailSndr.sendMsg(Target.Address, CStr(oldVal), changer("name")) Then
                     If record_change(Target.Address) Then
@@ -45,7 +47,7 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                 End If
             Else
                 Debug.Assert False
-                MsgBox "Статус не может быть изменен, потому что у вас не хватает полномочий"
+                MsgBox "Статус не может быть изменен, потому что " & isAauthString
                 If oldVal <> "" Then
                     Target.Value = oldVal
                 End If
