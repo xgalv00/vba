@@ -35,22 +35,16 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                         MsgBox "Статус был изменен, и если этому статусу необходима отправка уведомления, то оно было отправлено."
                     Else
                         MsgBox "Статус не может быть изменен, потому что у вас не хватает полномочий"
-                        If oldVal <> "" Then
-                            Target.Value = oldVal
-                        End If
+                        Call revertChange(Target)
                     End If
                 Else
                     MsgBox "Статус не был изменен, сообщение не отправлено"
-                    If oldVal <> "" Then
-                        Target.Value = oldVal
-                    End If
+                    Call revertChange(Target)
                 End If
             Else
                 Debug.Assert False
                 MsgBox "Статус не может быть изменен, потому что " & isAauthString
-                If oldVal <> "" Then
-                    Target.Value = oldVal
-                End If
+                Call revertChange(Target)
                 'user not authorized
             End If
             Call hide_everything
@@ -65,4 +59,12 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
             oldVal = Target.Value
         End If
     End If
+End Sub
+
+Private Sub revertChange(ByVal Target As Range)
+
+    Debug.Assert oldVal <> ""
+    Target.Value = oldVal
+    Range("K10").Select
+    
 End Sub
