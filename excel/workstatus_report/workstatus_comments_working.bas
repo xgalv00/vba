@@ -414,7 +414,7 @@ Function isValidPeriod(periodVal As String) As Boolean
     monthArg = tmpArray(0)
     
     isValidPeriod = isExistInCol(monthArg, monthCol)
-End Sub
+End Function
 
 Private Function isExistInCol(itemVal As String, colForSearch As Collection) As Boolean
     'loop through given collection and if meet given value return true
