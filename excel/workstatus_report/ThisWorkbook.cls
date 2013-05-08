@@ -16,6 +16,8 @@ Attribute VB_Exposed = True
 '' Для унификации решения с макросами и простоты поддержки
 ''
 'Private Sub Workbook_Open()
+'    ActiveWorkbook.Sheets("WorkStatus").Range("M4").FormulaLocal = "=EVMBR(B1;B4)"
+'End Sub
 '
 '' Системное событие - сразу после открытия книги
 '' Загрузить с сервера набор макросов

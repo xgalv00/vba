@@ -40,7 +40,8 @@ Private Sub find_usr()
         foundCellAddr = foundCell.Address
         Do While Not foundCell Is Nothing
             compColl.Add Cells(foundCell.Row, foundCell.Column - 2).Value
-            Set foundCell = Selection.FindNext
+            foundCell.Activate
+            Set foundCell = Selection.FindNext(ActiveCell)
             If foundCellAddr = foundCell.Address Then Exit Do
         Loop
         Exit Sub
@@ -62,7 +63,8 @@ Private Sub find_usr()
         foundCellAddr = foundCell.Address
         Do While Not foundCell Is Nothing
             compColl.Add Cells(foundCell.Row, foundCell.Column - 2).Value
-            Set foundCell = Selection.FindNext
+            foundCell.Activate
+            Set foundCell = Selection.FindNext(ActiveCell)
             If foundCellAddr = foundCell.Address Then Exit Do
         Loop
         Exit Sub

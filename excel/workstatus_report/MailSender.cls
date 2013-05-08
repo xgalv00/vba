@@ -26,6 +26,7 @@ Sub SendStatusMail(addresList, text, subject)
     '
     Set objOutlook = CreateObject("Outlook.Application")
     Set objOutlookMsg = objOutlook.CreateItem(olMailItem)
+    Debug.Assert Not objOutlookMsg Is Nothing
     '
     With objOutlookMsg
         '
@@ -45,9 +46,9 @@ Sub ShowSendMessage()
     '
     Set f = New UserFormMessage
     '
-    f.TextBoxSubject = tmpSubject
+    f.TextBoxSubject.Caption = tmpSubject
     f.TextBoxText = tmpText
-    f.TextBoxTo = tmpaddresList
+    f.TextBoxTo.Caption = tmpaddresList
     '
     f.Show
     '
@@ -87,7 +88,7 @@ End Function
 Public Function completeSendMsg() As Boolean
     'Debug.Assert False
     If Not techSend Then
-        SendStatusMail f.TextBoxTo.Value, f.TextBoxText.Value, f.TextBoxSubject.Value
+        SendStatusMail f.TextBoxTo.Caption, f.TextBoxText.Value, f.TextBoxSubject.Caption
         Unload f
     End If
     Set workStatSht = Nothing

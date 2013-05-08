@@ -159,7 +159,7 @@ Attribute initialize_WS_variables.VB_ProcData.VB_Invoke_Func = " \n14"
 '
 '    Dim clw As New CellWorker
 '
-    Set statusWB = Workbooks("workstatus_v01.xlsm")
+    Set statusWB = ActiveWorkbook
     
     Set wStatSht = statusWB.Sheets("WorkStatus")
     Set wStatDraftSht = statusWB.Sheets("WorkStatusDraft")
@@ -206,9 +206,9 @@ Sub prepareWorkspace()
     
     workRange.Select
     Call create_comboBxs
+    Selection.Locked = False
     
     Call readComments
-
     Call hide_everything
 
 
@@ -225,7 +225,7 @@ Private Function Pass(sh)
         Pass = f.Value
         If sh.ProtectContents = False Then
             f.NumberFormat = ";;;"
-            f.Locked = True
+            'f.Locked = True
             f.FormulaHidden = True
             Set r = Range(sh.Cells(f.Row - 1, f.Column), f)
             r.Interior.ThemeColor = xlThemeColorAccent1
