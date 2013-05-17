@@ -88,6 +88,8 @@ End Function
 
 Function isCompanyInUsrCompColl(compName As String) As Boolean
     
+    compName = Trim(LCase(compName))
+    
     For Each comp In compColl
         If comp = compName Then
             isCompanyInUsrCompColl = True

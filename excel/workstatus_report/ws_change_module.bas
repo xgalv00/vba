@@ -114,7 +114,7 @@ Private Sub IE_Automation(url As String, status As Integer)
     IE.Navigate testUrl
      
      ' You can uncoment Next line To see work status results
-    'IE.Visible = True
+    IE.Visible = True
     
     ' Wait while IE loading...
     Do While IE.Busy

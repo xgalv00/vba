@@ -395,7 +395,7 @@ Function isAuthorized(changedCell As Range) As String
         isAuthorized = "у ¬ас недостаточно прав, чтобы поставить статус " & changedCell.Value
         Exit Function
     ElseIf Not isValidPeriod(periodVal) Then
-        isAuthorized = ""
+        isAuthorized = "необходимо выбрать мес€ц в поле период"
         Exit Function
     End If
     

@@ -119,13 +119,16 @@ Private Function getAprAddr() As String
         foundCellAddr = foundCell.Address
         Do While Not foundCell Is Nothing
             getAprAddr = getAprAddr & Cells(foundCell.Row, foundCell.Column + 3).Value & ";"
-            Set foundCell = Selection.FindNext
+            foundCell.Activate
+            Set foundCell = Selection.FindNext(ActiveCell)
             If foundCellAddr = foundCell.Address Then Exit Do
         Loop
     Else
         getAprAddr = "Error"
     End If
-    
+
+    'cleaning
+    Set foundCell = Nothing
     'getAprAddr = "Chernokalskayaea@dtek.com" '"galkinva@dtek.com"
     'Debug.Assert False
 End Function
@@ -133,7 +136,7 @@ End Function
 Private Function getAprSht() As String
     If statVal = "Данные внесены" Then
         getAprSht = "msfo_table"
-    ElseIf statVal = "Данные содержат ошибки" Then
+    ElseIf statVal = "Данные содержат ошибки" Or statVal = "Принято" Then
         getAprSht = "user_table"
     End If
 End Function

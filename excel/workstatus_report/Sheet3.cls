@@ -28,10 +28,10 @@ Private Sub Worksheet_Change(ByVal Target As Range)
             Debug.Assert Not changer Is Nothing
             isAauthString = isAuthorized(Target)
             If isAauthString = "ok" Then
-                '@todo add check that value is one range
                 If mailSndr.sendMsg(Target.Address, CStr(oldVal), changer("name")) Then
                     If record_change(Target.Address) Then
                         Call mailSndr.completeSendMsg
+                        Cells(Target.Row - 1, Target.Column).Select
                         MsgBox "Статус был изменен, и если этому статусу необходима отправка уведомления, то оно было отправлено."
                     Else
                         MsgBox "Статус не может быть изменен, потому что у вас не хватает полномочий"
@@ -64,7 +64,9 @@ End Sub
 Private Sub revertChange(ByVal Target As Range)
 
     Debug.Assert oldVal <> ""
+    Target.Parent.Activate
     Target.Value = oldVal
+    
     Range("K10").Select
     
 End Sub
