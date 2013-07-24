@@ -30,11 +30,15 @@ Private Sub Worksheet_Change(ByVal Target As Range)
             If isAauthString = "ok" Then
                 If mailSndr.sendMsg(Target.Address, CStr(oldVal), changer("name")) Then
                     If record_change(Target.Address) Then
-                        Call mailSndr.completeSendMsg
+                        If mailSndr.completeSendMsg = "ok" Then
+                            MsgBox "—татус был изменен, и если этому статусу необходима отправка уведомлени€, то оно было отправлено."
+                        Else
+                            MsgBox "—татус был изменен, но сообщение не было отправлено, потому что Outlook не установлен или недоступен."
+                        End If
                         Cells(Target.Row - 1, Target.Column).Select
-                        MsgBox "—татус был изменен, и если этому статусу необходима отправка уведомлени€, то оно было отправлено."
+                    
                     Else
-                        MsgBox "—татус не может быть изменен, потому что у вас не хватает полномочий"
+                        MsgBox "—татус не может быть изменен, потому что у вас не хватает полномочий (record_change check)"
                         Call revertChange(Target)
                     End If
                 Else
@@ -42,7 +46,7 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                     Call revertChange(Target)
                 End If
             Else
-                Debug.Assert False
+                'Debug.Assert False
                 MsgBox "—татус не может быть изменен, потому что " & isAauthString
                 Call revertChange(Target)
                 'user not authorized

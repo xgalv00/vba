@@ -406,10 +406,21 @@ Function isValidPeriod(periodVal As String) As Boolean
     Dim monthCol As New Collection
     Dim monthArg As String
     Dim tmpArray As Variant
+    
+    'this used because of language issues (month naming)
+    monthCol.Add "Январь"
+    monthCol.Add "Февраль"
+    monthCol.Add "Март"
+    monthCol.Add "Апрель"
+    monthCol.Add "Май"
+    monthCol.Add "Июнь"
+    monthCol.Add "Июль"
+    monthCol.Add "Август"
+    monthCol.Add "Сентябрь"
+    monthCol.Add "Октябрь"
+    monthCol.Add "Ноябрь"
+    monthCol.Add "Декабрь"
 
-    For i = 1 To 12
-        monthCol.Add (MonthName(i))
-    Next i
     tmpArray = Split(periodVal, " ")
     monthArg = tmpArray(0)
     

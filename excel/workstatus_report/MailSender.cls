@@ -17,7 +17,7 @@ Dim techSend As Boolean
 Dim f As UserFormMessage
 
 
-Sub SendStatusMail(addresList, text, subject)
+Function SendStatusMail(addresList, text, subject) As Boolean
     '
     Dim objOutlook As Object
     Dim objOutlookMsg As Object
@@ -33,15 +33,24 @@ Sub SendStatusMail(addresList, text, subject)
         .To = addresList
         .subject = subject
         .Body = text
+        On Error Resume Next
         .Send
+        If Err.Number <> 0 Then
+            Set objOutlookMsg = Nothing
+            Set objOutlook = Nothing
+            On Error GoTo 0
+            Exit Function
+        End If
+        On Error GoTo 0
     End With
     '
     Set objOutlookMsg = Nothing
     Set objOutlook = Nothing
     Set objOutlookRecip = Nothing
     Set objOutlookAttach = Nothing
+    SendStatusMail = True
     '
-End Sub
+End Function
 Sub ShowSendMessage()
     '
     Set f = New UserFormMessage
@@ -85,13 +94,19 @@ Public Function sendMsg(targAddr As String, oldVal As String, usrName As String)
     End If
 End Function
 
-Public Function completeSendMsg() As Boolean
+Public Function completeSendMsg() As String
+    Dim resString As String
     'Debug.Assert False
     If Not techSend Then
-        SendStatusMail f.TextBoxTo.Caption, f.TextBoxText.Value, f.TextBoxSubject.Caption
+        If Not SendStatusMail(f.TextBoxTo.Caption, f.TextBoxText.Value, f.TextBoxSubject.Caption) Then
+            completeSendMsg = "Outlook не установлен"
+            Unload f
+            Exit Function
+        End If
         Unload f
     End If
     Set workStatSht = Nothing
+    completeSendMsg = "ok"
 End Function
 
 Private Function collectMsg(oldVal As String, usrName As String) As String
