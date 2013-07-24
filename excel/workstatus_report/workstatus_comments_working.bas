@@ -376,7 +376,8 @@ Sub bulkStatusChange(statusVal)
                 cellsCol.Add cellToExam.Address(False, False)
                 Set cellToExam = clw.move_down(cellToExam)
             Loop
-            Set cellToExam = clw.move_right(upLeftCell)
+            Set upLeftCell = clw.move_right(upLeftCell)
+            Set cellToExam = upLeftCell
         Loop
     ElseIf Selection.Areas.Count > 1 Then
     
