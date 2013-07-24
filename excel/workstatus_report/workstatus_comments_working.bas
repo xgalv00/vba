@@ -358,35 +358,42 @@ Sub bulkStatusChange(statusVal)
     
     Dim cellsCol As Collection
     Dim rangeAddrToExam As String
-    Dim cellToExam As Range
-    Dim upLeftCell As Range
-    Dim clw As New CellWorker
+    Dim i As Integer
     
     Call initialize_WS_variables
     wStatSht.Activate
     
     Set cellsCol = New Collection
     
-    If Selection.Areas.Count = 1 Then
-        rangeAddrToExam = Selection.Areas(1).Address(False, False)
-        Set cellToExam = Cells(Selection.Areas(1).Row, Selection.Areas(1).Column)
-        Set upLeftCell = cellToExam
-        Do While isInRange(rangeAddrToExam, cellToExam)
-            Do While isInRange(rangeAddrToExam, cellToExam)
-                cellsCol.Add cellToExam.Address(False, False)
-                Set cellToExam = clw.move_down(cellToExam)
-            Loop
-            Set upLeftCell = clw.move_right(upLeftCell)
-            Set cellToExam = upLeftCell
-        Loop
-    ElseIf Selection.Areas.Count > 1 Then
-    
-    End If
+    For i = 1 To Selection.Areas.Count
+        rangeAddrToExam = Selection.Areas(i).Address(False, False)
+        Call populateCollection(rangeAddrToExam, cellsCol)
+    Next i
     'Create collection with cell addresses to process
     
     'call record_change for each cell in collection
     
     'collect message and send it
+
+End Sub
+
+Private Sub populateCollection(rangeAddrToExam As String, cellsCol As Collection)
+    'Populate cellsCol with addresses of cells from rangeAddrToExam
+    Dim cellToExam As Range
+    Dim upLeftCell As Range
+    Dim clw As New CellWorker
+
+    
+    Set cellToExam = Cells(Selection.Areas(1).Row, Selection.Areas(1).Column)
+    Set upLeftCell = cellToExam
+    Do While isInRange(rangeAddrToExam, cellToExam)
+        Do While isInRange(rangeAddrToExam, cellToExam)
+            cellsCol.Add cellToExam.Address(False, False)
+            Set cellToExam = clw.move_down(cellToExam)
+        Loop
+        Set upLeftCell = clw.move_right(upLeftCell)
+        Set cellToExam = upLeftCell
+    Loop
 
 End Sub
 
