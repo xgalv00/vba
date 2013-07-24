@@ -357,18 +357,23 @@ Sub bulkStatusChange(statusVal)
     'Procedure for bulk status change
     
     Dim cellsCol As Collection
-    Dim rangeAddrToExam As String
+    'Dim rangeAddrToExam As String
     Dim i As Integer
+    Dim selectedAreas As Collection
     
     Call initialize_WS_variables
     wStatSht.Activate
     
     Set cellsCol = New Collection
+    Set selectedAreas = New Collection
     
     For i = 1 To Selection.Areas.Count
-        rangeAddrToExam = Selection.Areas(i).Address(False, False)
-        Call populateCollection(rangeAddrToExam, cellsCol)
+        selectedAreas.Add Selection.Areas(i).Address(False, False)
     Next i
+    
+    For Each rangeAddrToExam In selectedAreas
+        Call populateCollection(CStr(rangeAddrToExam), cellsCol)
+    Next rangeAddrToExam
     'Create collection with cell addresses to process
     
     'call record_change for each cell in collection
@@ -382,9 +387,22 @@ Private Sub populateCollection(rangeAddrToExam As String, cellsCol As Collection
     Dim cellToExam As Range
     Dim upLeftCell As Range
     Dim clw As New CellWorker
-
+    Dim tmpAddr As String
+    Dim tmpArray As Variant
     
-    Set cellToExam = Cells(Selection.Areas(1).Row, Selection.Areas(1).Column)
+    On Error Resume Next
+    tmpArray = Split(rangeAddrToExam, ":")
+    If Err.Number = 0 Then
+        tmpAddr = tmpArray(0)
+    End If
+    On Error GoTo 0
+    
+    If tmpAddr = "" Then
+        Set cellToExam = Range(rangeAddrToExam)
+    Else
+        Set cellToExam = Range(tmpAddr)
+    End If
+    
     Set upLeftCell = cellToExam
     Do While isInRange(rangeAddrToExam, cellToExam)
         Do While isInRange(rangeAddrToExam, cellToExam)
