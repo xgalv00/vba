@@ -22,6 +22,7 @@ Attribute VB_Exposed = False
 
 
 
+
 Public msgWasSent As Boolean
 
 Private Sub CommandButtonCancel_Click()

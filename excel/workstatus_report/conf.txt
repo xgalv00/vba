@@ -6,3 +6,4 @@ from_file:Timer.cls
 from_file:MailSender.cls
 from_file:UserFormMessage.frm
 from_file:UsrInfo.bas
+from_file:bulkStatusChangeUF.frm

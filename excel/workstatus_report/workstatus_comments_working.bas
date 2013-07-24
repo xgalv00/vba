@@ -5,6 +5,13 @@ Dim wStatSht As Worksheet, comDraftSht As Worksheet, wStatDraftSht As Worksheet
 Dim msfoTableSht As Worksheet, usrTableSht As Worksheet
 Dim workRange As Range
 
+Sub changeStatus()
+
+    bulkStatusChangeUF.Show
+
+End Sub
+
+
 Sub refreshSht()
 
     Application.Run "MNU_eSUBMIT_REFSCHEDULE_SHEET_REFRESH"
@@ -341,6 +348,61 @@ Function isInWorkrange(cellToExam As Range) As Boolean
     
     If cellToExam.Row <= downRightCell.Row And cellToExam.Column <= downRightCell.Column And cellToExam.Row >= upLeftCell.Row And cellToExam.Column >= upLeftCell.Column Then
         isInWorkrange = True
+    End If
+
+End Function
+
+Sub bulkStatusChange(statusVal)
+
+    'Procedure for bulk status change
+    
+    Dim cellsCol As Collection
+    Dim rangeAddrToExam As String
+    Dim cellToExam As Range
+    Dim upLeftCell As Range
+    Dim clw As New CellWorker
+    
+    Call initialize_WS_variables
+    wStatSht.Activate
+    
+    Set cellsCol = New Collection
+    
+    If Selection.Areas.Count = 1 Then
+        rangeAddrToExam = Selection.Areas(1).Address(False, False)
+        Set cellToExam = Cells(Selection.Areas(1).Row, Selection.Areas(1).Column)
+        Set upLeftCell = cellToExam
+        Do While isInRange(rangeAddrToExam, cellToExam)
+            Do While isInRange(rangeAddrToExam, cellToExam)
+                cellsCol.Add cellToExam.Address(False, False)
+                Set cellToExam = clw.move_down(cellToExam)
+            Loop
+            Set cellToExam = clw.move_right(upLeftCell)
+        Loop
+    ElseIf Selection.Areas.Count > 1 Then
+    
+    End If
+    'Create collection with cell addresses to process
+    
+    'call record_change for each cell in collection
+    
+    'collect message and send it
+
+End Sub
+
+Function isInRange(rangeAddrToExam As String, cellToExam As Range) As Boolean
+
+    Dim workRangeAddr As String
+    Dim upLeftCell As Range, downRightCell As Range
+    Dim tmpArray As Variant
+    
+    isInRange = False
+    workRangeAddr = rangeAddrToExam
+    tmpArray = Split(workRangeAddr, ":")
+    Set upLeftCell = Range(tmpArray(0))
+    Set downRightCell = Range(tmpArray(1))
+    
+    If cellToExam.Row <= downRightCell.Row And cellToExam.Column <= downRightCell.Column And cellToExam.Row >= upLeftCell.Row And cellToExam.Column >= upLeftCell.Column Then
+        isInRange = True
     End If
 
 End Function
