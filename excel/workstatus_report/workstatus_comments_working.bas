@@ -106,6 +106,11 @@ Sub writeComments()
    'Application.ScreenUpdating = True
 End Sub
 
+Sub test_clear()
+
+    Call clear_statuses
+End Sub
+
 Sub clear_statuses(Optional shtForClear As Worksheet)
     Call initialize_WS_variables
     
@@ -329,7 +334,7 @@ Sub bulkStatusChange(statusVal)
             Call mailSndr.collectBulkMsg(CStr(cell_addr), Range(cell_addr).Value, changer("name"), CStr(statusVal))
             'Call addToMsg()
         Else
-'                Debug.Assert False
+               Debug.Assert False
 '                MsgBox "—татус не может быть изменен, потому что " & isAauthString
 '                Call revertChange(Target)
 '                'user not authorized
@@ -362,56 +367,6 @@ Sub bulkStatusChange(statusVal)
 
 End Sub
 
-Private Sub populateCollection(rangeAddrToExam As String, cellsCol As Collection)
-    'Populate cellsCol with addresses of cells from rangeAddrToExam
-    Dim cellToExam As Range
-    Dim upLeftCell As Range
-    Dim clw As New CellWorker
-    Dim tmpAddr As String
-    Dim tmpArray As Variant
-    
-    On Error Resume Next
-    tmpArray = Split(rangeAddrToExam, ":")
-    If Err.Number = 0 Then
-        tmpAddr = tmpArray(0)
-    End If
-    On Error GoTo 0
-    
-    If tmpAddr = "" Then
-        Set cellToExam = Range(rangeAddrToExam)
-    Else
-        Set cellToExam = Range(tmpAddr)
-    End If
-    
-    Set upLeftCell = cellToExam
-    Do While isInRange(rangeAddrToExam, cellToExam)
-        Do While isInRange(rangeAddrToExam, cellToExam)
-            cellsCol.Add cellToExam.Address(False, False)
-            Set cellToExam = clw.move_down(cellToExam)
-        Loop
-        Set upLeftCell = clw.move_right(upLeftCell)
-        Set cellToExam = upLeftCell
-    Loop
-
-End Sub
-
-Function isInRange(rangeAddrToExam As String, cellToExam As Range) As Boolean
-
-    Dim workRangeAddr As String
-    Dim upLeftCell As Range, downRightCell As Range
-    Dim tmpArray As Variant
-    
-    isInRange = False
-    workRangeAddr = rangeAddrToExam
-    tmpArray = Split(workRangeAddr, ":")
-    Set upLeftCell = Range(tmpArray(0))
-    Set downRightCell = Range(tmpArray(1))
-    
-    If cellToExam.Row <= downRightCell.Row And cellToExam.Column <= downRightCell.Column And cellToExam.Row >= upLeftCell.Row And cellToExam.Column >= upLeftCell.Column Then
-        isInRange = True
-    End If
-
-End Function
 
 Function record_change(changeCellAddr As String) As Boolean
     Dim srcWSht As Worksheet ', destWSht As Worksheet
@@ -507,5 +462,66 @@ Private Function isExistInCol(itemVal As String, colForSearch As Collection) As 
         End If
     Next Item
     isExistInCol = resBool
+End Function
+
+Private Sub populateCollection(rangeAddrToExam As String, cellsCol As Collection)
+    'Populate cellsCol with addresses of cells from rangeAddrToExam
+    Dim cellToExam As Range
+    Dim upLeftCell As Range
+    Dim clw As New CellWorker
+    Dim tmpAddr As String
+    Dim tmpArray As Variant
+    
+    On Error Resume Next
+    tmpArray = Split(rangeAddrToExam, ":")
+    If Err.Number = 0 Then
+        tmpAddr = tmpArray(0)
+    End If
+    On Error GoTo 0
+    
+    If tmpAddr = "" Then
+        Set cellToExam = Range(rangeAddrToExam)
+    Else
+        Set cellToExam = Range(tmpAddr)
+    End If
+    
+    Set upLeftCell = cellToExam
+    Do While isInRange(rangeAddrToExam, cellToExam)
+        Do While isInRange(rangeAddrToExam, cellToExam)
+            cellsCol.Add cellToExam.Address(False, False)
+            Set cellToExam = clw.move_down(cellToExam)
+        Loop
+        Set upLeftCell = clw.move_right(upLeftCell)
+        Set cellToExam = upLeftCell
+    Loop
+
+End Sub
+
+Function isInRange(rangeAddrToExam As String, cellToExam As Range) As Boolean
+
+    Dim workRangeAddr As String
+    Dim upLeftCell As Range, downRightCell As Range
+    Dim tmpArray As Variant
+    
+    isInRange = False
+    'Check if user selects one cell
+    If InStr(1, rangeAddrToExam, ":") = 0 Then
+        If rangeAddrToExam = cellToExam.Address(False, False) Then
+            isInRange = True
+            Exit Function
+        Else
+            Exit Function
+        End If
+    End If
+    
+    workRangeAddr = rangeAddrToExam
+    tmpArray = Split(workRangeAddr, ":")
+    Set upLeftCell = Range(tmpArray(0))
+    Set downRightCell = Range(tmpArray(1))
+    
+    If cellToExam.Row <= downRightCell.Row And cellToExam.Column <= downRightCell.Column And cellToExam.Row >= upLeftCell.Row And cellToExam.Column >= upLeftCell.Column Then
+        isInRange = True
+    End If
+
 End Function
 
