@@ -16,66 +16,8 @@ Dim workStatSht As Worksheet
 Dim techSend As Boolean
 Dim f As UserFormMessage
 
-
-Function SendStatusMail(addresList, text, subject) As Boolean
-    '
-    Dim objOutlook As Object
-    Dim objOutlookMsg As Object
-    Dim objOutlookRecip As Object
-    Dim objOutlookAttach As Object
-    '
-    Set objOutlook = CreateObject("Outlook.Application")
-    Set objOutlookMsg = objOutlook.CreateItem(olMailItem)
-    Debug.Assert Not objOutlookMsg Is Nothing
-    '
-    With objOutlookMsg
-        '
-        .To = addresList
-        .subject = subject
-        .Body = text
-        On Error Resume Next
-        .Send
-        If Err.Number <> 0 Then
-            Set objOutlookMsg = Nothing
-            Set objOutlook = Nothing
-            On Error GoTo 0
-            Exit Function
-        End If
-        On Error GoTo 0
-    End With
-    '
-    Set objOutlookMsg = Nothing
-    Set objOutlook = Nothing
-    Set objOutlookRecip = Nothing
-    Set objOutlookAttach = Nothing
-    SendStatusMail = True
-    '
-End Function
-Sub ShowSendMessage()
-    '
-    Set f = New UserFormMessage
-    '
-    f.TextBoxSubject.Caption = tmpSubject
-    f.TextBoxText = tmpText
-    f.TextBoxTo.Caption = tmpaddresList
-    '
-    f.Show
-    '
-End Sub
-
-
-Public Function sendMsg(targAddr As String, oldVal As String, usrName As String) As Boolean
-    Dim tmpRng As Range
-    
-    Set workStatSht = ActiveWorkbook.Sheets("Workstatus")
-    Set tmpRng = workStatSht.Range(targAddr)
-    Call initVars(tmpRng)
-    'nobody could set default status
-    If statVal = "По умолчанию" Then
-        Exit Function
-    End If
-    tmpText = collectMsg(oldVal, usrName)
-    tmpaddresList = getAprAddr()
+Public Function sendMsg() As Boolean
+    tmpSubject = "Рассылка по поводу изменения статуса"
     'tmp stub for approved and started i don't know to whom i should send emails.
     If tmpaddresList = "" Then
         sendMsg = True
@@ -86,13 +28,28 @@ Public Function sendMsg(targAddr As String, oldVal As String, usrName As String)
         'company name was not found
         Exit Function
     End If
-    tmpSubject = "Рассылка по поводу изменения статуса"
+    
     Call ShowSendMessage
     If f.msgWasSent Then
         sendMsg = True
         techSend = False
     End If
 End Function
+
+Public Sub collectBulkMsg(targAddr As String, oldVal As String, usrName As String, inStatusVal As String)
+    Dim tmpRng As Range
+    
+    Set workStatSht = ActiveWorkbook.Sheets("Workstatus")
+    Set tmpRng = workStatSht.Range(targAddr)
+    Call initVars(tmpRng, inStatusVal)
+    'nobody could set default status
+    If statVal = "По умолчанию" Then
+        Exit Sub
+    End If
+    tmpText = collectMsg(oldVal, usrName)
+    tmpaddresList = getAprAddr()
+
+End Sub
 
 Public Function completeSendMsg() As String
     Dim resString As String
@@ -156,12 +113,58 @@ Private Function getAprSht() As String
     End If
 End Function
 
-Private Sub initVars(changedRng As Range)
+Private Sub initVars(changedRng As Range, inStatusVal As String)
     
     compName = workStatSht.Cells(10, changedRng.Column).Value
     formName = workStatSht.Cells(changedRng.Row, 12).Value
     formNum = workStatSht.Cells(changedRng.Row, 11).Value
     perName = workStatSht.Range("N3").Value
-    statVal = changedRng.Value
+    statVal = inStatusVal
     
+End Sub
+
+Function SendStatusMail(addresList, text, subject) As Boolean
+    '
+    Dim objOutlook As Object
+    Dim objOutlookMsg As Object
+    Dim objOutlookRecip As Object
+    Dim objOutlookAttach As Object
+    '
+    Set objOutlook = CreateObject("Outlook.Application")
+    Set objOutlookMsg = objOutlook.CreateItem(olMailItem)
+    Debug.Assert Not objOutlookMsg Is Nothing
+    '
+    With objOutlookMsg
+        '
+        .To = addresList
+        .subject = subject
+        .Body = text
+        On Error Resume Next
+        .Send
+        If Err.Number <> 0 Then
+            Set objOutlookMsg = Nothing
+            Set objOutlook = Nothing
+            On Error GoTo 0
+            Exit Function
+        End If
+        On Error GoTo 0
+    End With
+    '
+    Set objOutlookMsg = Nothing
+    Set objOutlook = Nothing
+    Set objOutlookRecip = Nothing
+    Set objOutlookAttach = Nothing
+    SendStatusMail = True
+    '
+End Function
+Sub ShowSendMessage()
+    '
+    Set f = New UserFormMessage
+    '
+    f.TextBoxSubject.Caption = tmpSubject
+    f.TextBoxText = tmpText
+    f.TextBoxTo.Caption = tmpaddresList
+    '
+    f.Show
+    '
 End Sub

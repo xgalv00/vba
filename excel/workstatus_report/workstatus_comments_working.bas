@@ -1,5 +1,4 @@
 Attribute VB_Name = "workstatus_comments_working"
-Public technicalChange As Boolean
 Dim statusWB As Workbook
 Dim wStatSht As Worksheet, comDraftSht As Worksheet, wStatDraftSht As Worksheet
 Dim msfoTableSht As Worksheet, usrTableSht As Worksheet
@@ -107,54 +106,15 @@ Sub writeComments()
    'Application.ScreenUpdating = True
 End Sub
 
-Sub create_comboBxs()
-
-    With Selection.Validation
-        .Delete
-        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
-        xlBetween, Formula1:="=Helper!$B$1:$B$5"
-        .IgnoreBlank = True
-        .InCellDropdown = True
-        .InputTitle = ""
-        .ErrorTitle = ""
-        .InputMessage = ""
-        .ErrorMessage = ""
-        .ShowInput = True
-        .ShowError = True
-    End With
-    
-End Sub
-
-Sub tweak_macro()
-'
-' tweak_macro1 ћакрос
-'
-
-'
-    technicalChange = True
-    
-    Range("N11").Select
-    ActiveCell.FormulaR1C1 = "=EVLCK(R1C2,0,R3C13,RC8,R9C)"
-    '@todo rewrite  this autofill with use of workrange
-    Selection.AutoFill Destination:=Range("N11:N146"), Type:=xlFillDefault
-    Range("N11:N146").Select
-    Selection.AutoFill Destination:=Range("N11:AY146"), Type:=xlFillDefault
-    Range("N11:AY146").Select
-    Range("N11").Select
-    
-    technicalChange = False
-End Sub
 Sub clear_statuses(Optional shtForClear As Worksheet)
     Call initialize_WS_variables
     
-    technicalChange = True
     If shtForClear Is Nothing Then
         Range(workRange.Address(False, False)).ClearContents
     Else
         shtForClear.Range(workRange.Address(False, False)).ClearContents
     End If
     Range(workRange.Address(False, False)).ClearComments
-    technicalChange = True
     
 End Sub
 
@@ -212,8 +172,8 @@ Sub prepareWorkspace()
     Call copyStatuses
     
     workRange.Select
-    Call create_comboBxs
-    Selection.Locked = False
+    'Call create_comboBxs
+    Selection.Locked = True
     
     Call readComments
     Call hide_everything
@@ -309,7 +269,6 @@ Sub copyStatuses()
     Dim tmpRng As Range
     Dim convVal As String
     
-    technicalChange = True
     
     Set eng_rus_dict = ws_change_module.make_dictionary()
     wStatDraftSht.Select
@@ -327,45 +286,32 @@ Sub copyStatuses()
     'Selection.Copy
     'workRange.Copy
     wStatSht.Select
-
     
-    technicalChange = False
 
 End Sub
 
-Function isInWorkrange(cellToExam As Range) As Boolean
-
-    Dim workRangeAddr As String
-    Dim upLeftCell As Range, downRightCell As Range
-    Dim tmpArray As Variant
-    
-    isInWorkrange = False
-    wStatSht.Activate
-    workRangeAddr = workRange.Address(False, False)
-    tmpArray = Split(workRangeAddr, ":")
-    Set upLeftCell = Range(tmpArray(0))
-    Set downRightCell = Range(tmpArray(1))
-    
-    If cellToExam.Row <= downRightCell.Row And cellToExam.Column <= downRightCell.Column And cellToExam.Row >= upLeftCell.Row And cellToExam.Column >= upLeftCell.Column Then
-        isInWorkrange = True
-    End If
-
-End Function
 
 Sub bulkStatusChange(statusVal)
 
     'Procedure for bulk status change
     
-    Dim cellsCol As Collection
-    'Dim rangeAddrToExam As String
+    Dim cellsCol As Collection, authCellsCol As Collection
     Dim i As Integer
     Dim selectedAreas As Collection
+    Dim changer As Collection
+    Dim mailSndr As New MailSender
+    Dim isAauthString As String
     
     Call initialize_WS_variables
+    Call unhide_everything
+    Set changer = usr_init()
+    Debug.Assert Not changer Is Nothing
     wStatSht.Activate
     
+    'Populate collection by cell addresses which user has selected
     Set cellsCol = New Collection
     Set selectedAreas = New Collection
+    Set authCellsCol = New Collection
     
     For i = 1 To Selection.Areas.Count
         selectedAreas.Add Selection.Areas(i).Address(False, False)
@@ -374,11 +320,45 @@ Sub bulkStatusChange(statusVal)
     For Each rangeAddrToExam In selectedAreas
         Call populateCollection(CStr(rangeAddrToExam), cellsCol)
     Next rangeAddrToExam
-    'Create collection with cell addresses to process
-    
+    'Create collection with cell addresses to process. Clean from
+    'non authorized cells
+    For Each cell_addr In cellsCol
+        isAauthString = isAuthorized(Range(cell_addr))
+        If isAauthString = "ok" Then
+            authCellsCol.Add cell_addr
+            Call mailSndr.collectBulkMsg(CStr(cell_addr), Range(cell_addr).Value, changer("name"), CStr(statusVal))
+            'Call addToMsg()
+        Else
+'                Debug.Assert False
+'                MsgBox "—татус не может быть изменен, потому что " & isAauthString
+'                Call revertChange(Target)
+'                'user not authorized
+        End If
+    Next cell_addr
+    'collect message and send it
+    If mailSndr.sendMsg Then
+        Debug.Assert False
+'                    If record_change(Target.Address) Then
+'                        If mailSndr.completeSendMsg = "ok" Then
+'                            MsgBox "—татус был изменен, и если этому статусу необходима отправка уведомлени€, то оно было отправлено."
+'                        Else
+'                            MsgBox "—татус был изменен, но сообщение не было отправлено, потому что Outlook не установлен или недоступен."
+'                        End If
+'                        Cells(Target.Row - 1, Target.Column).Select
+'
+'                    Else
+'                        MsgBox "—татус не может быть изменен, потому что у вас не хватает полномочий (record_change check)"
+'                        Call revertChange(Target)
+'                    End If
+    Else
+        Debug.Assert False
+'                        MsgBox "—татус не может быть изменен, потому что у вас не хватает полномочий (record_change check)"
+'                        Call revertChange(Target)
+    End If
     'call record_change for each cell in collection
     
-    'collect message and send it
+
+    Call hide_everything
 
 End Sub
 
