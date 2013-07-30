@@ -36,7 +36,7 @@ Public Function sendMsg() As Boolean
     End If
 End Function
 
-Public Sub collectBulkMsg(targAddr As String, oldVal As String, usrName As String, inStatusVal As String)
+Public Sub collectVarMsg(targAddr As String, oldVal As String, inStatusVal As String)
     Dim tmpRng As Range
     
     Set workStatSht = ActiveWorkbook.Sheets("Workstatus")
@@ -46,9 +46,13 @@ Public Sub collectBulkMsg(targAddr As String, oldVal As String, usrName As Strin
     If statVal = "По умолчанию" Then
         Exit Sub
     End If
-    tmpText = collectMsg(oldVal, usrName)
+    tmpText = tmpText + collectMsg(oldVal)
     tmpaddresList = getAprAddr()
 
+End Sub
+
+Public Sub addPermanentMsg(usrName As String)
+    tmpText = tmpText & "Изменение произведено пользователем: " & usrName & vbCrLf
 End Sub
 
 Public Function completeSendMsg() As String
@@ -66,10 +70,9 @@ Public Function completeSendMsg() As String
     completeSendMsg = "ok"
 End Function
 
-Private Function collectMsg(oldVal As String, usrName As String) As String
-    collectMsg = "Статус для компании: " & compName & " формы: " & formNum & " (" & formName & ") периода: " & perName & vbLf
+Private Function collectMsg(oldVal As String) As String
+    collectMsg = "Статус для компании: " & compName & " формы: " & formNum & " (" & formName & ") периода: " & perName
     collectMsg = collectMsg & " был изменен со статуса " & oldVal & " на " & statVal & vbLf
-    collectMsg = collectMsg & "Статус был изменен пользователем: " & usrName
 End Function
 
 Private Function getAprAddr() As String
