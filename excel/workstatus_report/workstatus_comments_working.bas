@@ -3,12 +3,184 @@ Dim statusWB As Workbook
 Dim wStatSht As Worksheet, comDraftSht As Worksheet, wStatDraftSht As Worksheet
 Dim msfoTableSht As Worksheet, usrTableSht As Worksheet
 Dim workRange As Range
+Dim cellsCol As Collection
 
 Sub changeStatus()
-
+    '@todo add user check to filter out status selection options
+    'show only appropriate for particular user
+    Call computeCmBxOptions
     bulkStatusChangeUF.Show
 
 End Sub
+
+Private Sub computeCmBxOptions()
+
+    Dim selectedAreas As Collection
+
+    'returns cmbx rowsource for particular user and cell
+    'B2 - Ввод начат
+'    В3 - Данные внесены
+'    В4 - Данные содержат ошибки
+'    В5 -Принято
+    '@todo replace isAuthorized by something like this
+    
+    Dim changer As Collection
+    Dim helperSht As Worksheet
+    Dim tmpCellVal As String
+
+    '@todo rewrite to support multiple area selection
+    If Selection.Columns.Count > 1 Then
+        MsgBox "Можно выбирать ячейки в одной колонке"
+        Exit Sub
+    End If
+    
+    Call initialize_WS_variables
+    Call unhide_everything
+
+    Set cellsCol = New Collection
+    Set selectedAreas = New Collection
+    Set changer = UsrInfo.usr_init
+    Set helperSht = Worksheets("Helper")
+    
+    For i = 1 To Selection.Areas.Count
+        selectedAreas.Add Selection.Areas(i).Address(False, False)
+    Next i
+    
+    For Each rangeAddrToExam In selectedAreas
+        Call populateCollection(CStr(rangeAddrToExam), cellsCol)
+    Next rangeAddrToExam
+    
+    If isExistInCol("msfo", changer("type")) Then
+       bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B4").Value
+       bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B5").Value
+    End If
+    
+    If isExistInCol("user", changer("type")) Then
+        'checks only first cell from selected range
+        tmpCellVal = wStatSht.Range(cellsCol(1)).Value
+        If tmpCellVal = "По умолчанию" Or tmpCellVal = "Данные внесены" Then
+            'started
+            bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B2").Value
+        Else
+            'submitted
+            bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B3").Value
+        End If
+    End If
+    
+    Call hide_everything
+End Sub
+
+Sub bulkStatusChange(statusVal)
+
+    'Procedure for bulk status change
+    
+    Dim authCellsCol As Collection
+    Dim changer As Collection
+    Dim mailSndr As New MailSender
+    Dim isAauthString As String
+    Dim confirmMsg As String
+    Dim selectedColsCount As Integer
+    Dim recordChangeSuccess As Boolean
+    
+
+    Call initialize_WS_variables
+    Call unhide_everything
+    Set changer = usr_init()
+    Debug.Assert Not changer Is Nothing
+    wStatSht.Activate
+    
+    'Populate collection by cell addresses which user has selected
+    Set authCellsCol = New Collection
+    
+
+    'Create collection with cell addresses to process. Clean from
+    'non authorized cells
+    For Each cell_addr In cellsCol
+        isAauthString = isAuthorized(wStatSht.Range(cell_addr))
+        If isAauthString = "ok" Then
+            authCellsCol.Add cell_addr
+            Call mailSndr.collectVarMsg(CStr(cell_addr), wStatSht.Range(cell_addr).Value, CStr(statusVal))
+            'Call addToMsg()
+        Else
+            MsgBox "Статус не может быть изменен, потому что " & isAauthString
+            Call hide_everything
+            Exit Sub
+        End If
+    Next cell_addr
+    'collect message and send it
+    'adds to message permanent info about user that changed status
+    Call mailSndr.addPermanentMsg(changer("name"))
+    If mailSndr.sendMsg Then
+    
+        'call record_change for each cell in collection
+        'Debug.Assert False
+        recordChangeSuccess = False
+        For Each cell_addr In authCellsCol
+            'change to
+            'If record_change(CStr(cell_addr), statusVal) Then
+            If record_change(CStr(cell_addr), CStr(statusVal), True) Then
+                confirmMsg = confirmMsg + "Статус для ячейки " + cell_addr + _
+                " был изменен" + vbCrLf
+                recordChangeSuccess = True
+            Else
+                confirmMsg = confirmMsg + "Статус для ячейки " + cell_addr + _
+                " не может быть изменен, потому что у вас не хватает полномочий (check record_change)" + vbCrLf
+            End If
+        Next cell_addr
+        
+        'проверка установлен ли оутлук
+        If recordChangeSuccess Then
+            If mailSndr.completeSendMsg = "ok" Then
+                confirmMsg = confirmMsg + _
+                "Уведомление для успешно изменненых статусов отправлено (если отправка сообщения предусмотрена)" + vbCrLf
+            Else
+                confirmMsg = confirmMsg + "Уведомление не отправлено (Outlook не установлен или недоступен)" + vbCrLf
+            End If
+        End If
+    Else
+        'Debug.Assert False
+        MsgBox "Статус не был изменен, сообщение не отправлено"
+    End If
+    
+
+    Call hide_everything
+    If confirmMsg <> "" Then MsgBox confirmMsg
+End Sub
+
+
+Function record_change(changeCellAddr As String, inStatVal As String, Optional debugFlag As Boolean) As Boolean
+    Dim srcWSht As Worksheet ', destWSht As Worksheet
+    Dim srcCellFormula As String ', destCellFormula As String
+    Dim compVal As String, dsVal As String, timeVal As String, statusVal As String
+    Dim compValAddr As String
+    Dim tmpArray As Variant
+    
+If Not debugFlag Then
+    'Call unhide_everything
+    Set srcWSht = Sheets("WorkStatusDraft")
+    srcWSht.Select
+    'Set destWSht = Sheets("Changed1")
+    srcCellFormula = srcWSht.Range(changeCellAddr).Formula
+    'destWSht.Activate
+    'Range(changeCellAddr).Formula = srcCellFormula
+    
+    tmpArray = Split(srcCellFormula, ",")
+    compValAddr = Left(tmpArray(4), Len(tmpArray(4)) - 1)
+    timeVal = Range(tmpArray(2)).Value
+    dsVal = Range(tmpArray(3)).Value
+    compVal = Range(compValAddr).Value
+    Sheets("WorkStatus").Activate
+    statusVal = inStatVal
+    Debug.Assert compVal <> "" Or dsVal <> "" Or timeVal <> "" Or statusVal <> ""
+    Call wsChangePrep(compVal, dsVal, timeVal, statusVal)
+    'Call hide_everything
+    If ws_change_module.statusChanged Then
+        record_change = True
+        Sheets("WorkStatus").Range(changeCellAddr).Value = inStatVal
+    End If
+End If
+
+End Function
 
 
 Sub refreshSht()
@@ -280,128 +452,7 @@ Sub copyStatuses()
 End Sub
 
 
-Sub bulkStatusChange(statusVal)
 
-    'Procedure for bulk status change
-    
-    Dim cellsCol As Collection, authCellsCol As Collection
-    Dim i As Integer
-    Dim selectedAreas As Collection
-    Dim changer As Collection
-    Dim mailSndr As New MailSender
-    Dim isAauthString As String
-    Dim confirmMsg As String
-    Dim selectedColsCount As Integer
-    
-    '@todo rewrite to support multiple area selection
-    If Selection.Columns.Count > 1 Then
-        MsgBox "Можно выбирать ячейки в одной колонке"
-        Exit Sub
-    End If
-    Call initialize_WS_variables
-    Call unhide_everything
-    Set changer = usr_init()
-    Debug.Assert Not changer Is Nothing
-    wStatSht.Activate
-    
-    'Populate collection by cell addresses which user has selected
-    Set cellsCol = New Collection
-    Set selectedAreas = New Collection
-    Set authCellsCol = New Collection
-    
-    
-    For i = 1 To Selection.Areas.Count
-        selectedAreas.Add Selection.Areas(i).Address(False, False)
-    Next i
-    
-    For Each rangeAddrToExam In selectedAreas
-        Call populateCollection(CStr(rangeAddrToExam), cellsCol)
-    Next rangeAddrToExam
-    'Create collection with cell addresses to process. Clean from
-    'non authorized cells
-    For Each cell_addr In cellsCol
-        isAauthString = isAuthorized(wStatSht.Range(cell_addr))
-        If isAauthString = "ok" Then
-            authCellsCol.Add cell_addr
-            Call mailSndr.collectVarMsg(CStr(cell_addr), wStatSht.Range(cell_addr).Value, CStr(statusVal))
-            'Call addToMsg()
-        Else
-            MsgBox "Статус не может быть изменен, потому что " & isAauthString
-            Call hide_everything
-            Exit Sub
-        End If
-    Next cell_addr
-    'collect message and send it
-    'adds to message permanent info about user that changed status
-    Call mailSndr.addPermanentMsg(changer("name"))
-    If mailSndr.sendMsg Then
-    
-        'call record_change for each cell in collection
-        'Debug.Assert False
-        For Each cell_addr In authCellsCol
-            'change to
-            'If record_change(CStr(cell_addr), statusVal) Then
-            If record_change(CStr(cell_addr), CStr(statusVal), True) Then
-                confirmMsg = confirmMsg + "Статус для ячейки " + cell_addr + _
-                " был изменен" + vbCrLf
-            Else
-                confirmMsg = confirmMsg + "Статус для ячейки " + cell_addr + _
-                " не может быть изменен, потому что у вас не хватает полномочий (check record_change)" + vbCrLf
-            End If
-        Next cell_addr
-        
-        'проверка установлен ли оутлук
-        If mailSndr.completeSendMsg = "ok" Then
-            confirmMsg = confirmMsg + _
-            "Уведомление отправлено (если отправка сообщения предусмотрена, для этого статуса)" + vbCrLf
-        Else
-            confirmMsg = confirmMsg + "Уведомление не отправлено (Outlook не установлен или недоступен)" + vbCrLf
-        End If
-    Else
-        'Debug.Assert False
-        MsgBox "Статус не был изменен, сообщение не отправлено"
-    End If
-    
-
-    Call hide_everything
-    If confirmMsg <> "" Then MsgBox confirmMsg
-End Sub
-
-
-Function record_change(changeCellAddr As String, inStatVal As String, Optional debugFlag As Boolean) As Boolean
-    Dim srcWSht As Worksheet ', destWSht As Worksheet
-    Dim srcCellFormula As String ', destCellFormula As String
-    Dim compVal As String, dsVal As String, timeVal As String, statusVal As String
-    Dim compValAddr As String
-    Dim tmpArray As Variant
-    
-If Not debugFlag Then
-    'Call unhide_everything
-    Set srcWSht = Sheets("WorkStatusDraft")
-    srcWSht.Select
-    'Set destWSht = Sheets("Changed1")
-    srcCellFormula = srcWSht.Range(changeCellAddr).Formula
-    'destWSht.Activate
-    'Range(changeCellAddr).Formula = srcCellFormula
-    
-    tmpArray = Split(srcCellFormula, ",")
-    compValAddr = Left(tmpArray(4), Len(tmpArray(4)) - 1)
-    timeVal = Range(tmpArray(2)).Value
-    dsVal = Range(tmpArray(3)).Value
-    compVal = Range(compValAddr).Value
-    Sheets("WorkStatus").Activate
-    statusVal = inStatVal
-    Debug.Assert compVal <> "" Or dsVal <> "" Or timeVal <> "" Or statusVal <> ""
-    Call wsChangePrep(compVal, dsVal, timeVal, statusVal)
-    'Call hide_everything
-    If ws_change_module.statusChanged Then
-        record_change = True
-        Sheets("WorkStatus").Range(changeCellAddr).Value = inStatVal
-    End If
-End If
-        record_change = True
-        Sheets("WorkStatus").Range(changeCellAddr).Value = inStatVal
-End Function
 
 Function isAuthorized(changedCell As Range) As String
     Dim compName As String
@@ -459,7 +510,7 @@ Function isValidPeriod(periodVal As String) As Boolean
     isValidPeriod = isExistInCol(monthArg, monthCol)
 End Function
 
-Private Function isExistInCol(itemVal As String, colForSearch As Collection) As Boolean
+Function isExistInCol(itemVal As String, colForSearch As Collection) As Boolean
     'loop through given collection and if meet given value return true
     Dim resBool As Boolean
     resBool = False
