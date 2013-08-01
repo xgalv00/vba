@@ -13,6 +13,10 @@ Sub changeStatus()
 
 End Sub
 
+Sub changeStatusDisableChecks()
+    Debug.Assert False
+End Sub
+
 Private Sub computeCmBxOptions()
 
     Dim selectedAreas As Collection
