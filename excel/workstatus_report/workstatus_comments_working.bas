@@ -4,6 +4,7 @@ Dim wStatSht As Worksheet, comDraftSht As Worksheet, wStatDraftSht As Worksheet
 Dim msfoTableSht As Worksheet, usrTableSht As Worksheet
 Dim workRange As Range
 Dim cellsCol As Collection
+Dim disableChecks As Boolean
 
 Sub changeStatus()
     '@todo add user check to filter out status selection options
@@ -14,12 +15,13 @@ Sub changeStatus()
 End Sub
 
 Sub changeStatusDisableChecks()
-    Debug.Assert False
+    disableChecks = True
+    Call computeCollectionFromSelection
+    bulkStatusChangeUF.Show
+    disableChecks = False
 End Sub
 
 Private Sub computeCmBxOptions()
-
-    Dim selectedAreas As Collection
 
     'returns cmbx rowsource for particular user and cell
     'B2 - Ввод начат
@@ -41,18 +43,12 @@ Private Sub computeCmBxOptions()
     Call initialize_WS_variables
     Call unhide_everything
 
-    Set cellsCol = New Collection
-    Set selectedAreas = New Collection
+
     Set changer = UsrInfo.usr_init
     Set helperSht = Worksheets("Helper")
     
-    For i = 1 To Selection.Areas.Count
-        selectedAreas.Add Selection.Areas(i).Address(False, False)
-    Next i
-    
-    For Each rangeAddrToExam In selectedAreas
-        Call populateCollection(CStr(rangeAddrToExam), cellsCol)
-    Next rangeAddrToExam
+    Call computeCollectionFromSelection
+
     
     If isExistInCol("msfo", changer("type")) Then
        bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B4").Value
@@ -72,6 +68,22 @@ Private Sub computeCmBxOptions()
     End If
     
     Call hide_everything
+End Sub
+
+Private Sub computeCollectionFromSelection()
+
+    Dim selectedAreas As Collection
+
+    Set cellsCol = New Collection
+    Set selectedAreas = New Collection
+    
+    For i = 1 To Selection.Areas.Count
+        selectedAreas.Add Selection.Areas(i).Address(False, False)
+    Next i
+    
+    For Each rangeAddrToExam In selectedAreas
+        Call populateCollection(CStr(rangeAddrToExam), cellsCol)
+    Next rangeAddrToExam
 End Sub
 
 Sub bulkStatusChange(statusVal)
@@ -99,53 +111,67 @@ Sub bulkStatusChange(statusVal)
 
     'Create collection with cell addresses to process. Clean from
     'non authorized cells
-    For Each cell_addr In cellsCol
-        isAauthString = isAuthorized(wStatSht.Range(cell_addr))
-        If isAauthString = "ok" Then
-            authCellsCol.Add cell_addr
-            Call mailSndr.collectVarMsg(CStr(cell_addr), wStatSht.Range(cell_addr).Value, CStr(statusVal))
-            'Call addToMsg()
-        Else
-            MsgBox "Статус не может быть изменен, потому что " & isAauthString
-            Call hide_everything
-            Exit Sub
+    If Not disableChecks Then
+        For Each cell_addr In cellsCol
+            isAauthString = isAuthorized(wStatSht.Range(cell_addr))
+            If isAauthString = "ok" Then
+                authCellsCol.Add cell_addr
+                Call mailSndr.collectVarMsg(CStr(cell_addr), wStatSht.Range(cell_addr).Value, CStr(statusVal))
+                'Call addToMsg()
+            Else
+                MsgBox "Статус не может быть изменен, потому что " & isAauthString
+                Call hide_everything
+                Exit Sub
+            End If
+        Next cell_addr
+        'collect message and send it
+        'adds to message permanent info about user that changed status
+        Call mailSndr.addPermanentMsg(changer("name"))
+        If mailSndr.sendMsg Then
+        
+            'call record_change for each cell in collection
+            'Debug.Assert False
+            recordChangeSuccess = False
+            For Each cell_addr In authCellsCol
+                'change to
+                'If record_change(CStr(cell_addr), statusVal) Then
+                If record_change(CStr(cell_addr), CStr(statusVal), True) Then
+                    confirmMsg = confirmMsg + "Статус для ячейки " + cell_addr + _
+                    " был изменен" + vbCrLf
+                    recordChangeSuccess = True 'if at least one status changed outlook message will be sent
+                Else
+                    confirmMsg = confirmMsg + "Статус для ячейки " + cell_addr + _
+                    " не может быть изменен, потому что у вас не хватает полномочий (check record_change)" + vbCrLf
+                End If
+            Next cell_addr
+            
+            'проверка установлен ли оутлук
+            If recordChangeSuccess Then
+                If mailSndr.completeSendMsg = "ok" Then
+                    confirmMsg = confirmMsg + _
+                    "Уведомление для успешно изменненых статусов отправлено" + _
+                    " (если отправка сообщения предусмотрена)" + vbCrLf
+                Else
+                    confirmMsg = confirmMsg + "Уведомление не отправлено (Outlook не установлен или недоступен)" + _
+                    vbCrLf
+                End If
+            End If
+        Else 'If mailSndr.sendMsg Then
+            'Debug.Assert False
+            MsgBox "Статус не был изменен, сообщение не отправлено"
         End If
-    Next cell_addr
-    'collect message and send it
-    'adds to message permanent info about user that changed status
-    Call mailSndr.addPermanentMsg(changer("name"))
-    If mailSndr.sendMsg Then
-    
-        'call record_change for each cell in collection
-        'Debug.Assert False
-        recordChangeSuccess = False
-        For Each cell_addr In authCellsCol
-            'change to
-            'If record_change(CStr(cell_addr), statusVal) Then
+        
+    Else 'If Not disableChecks Then
+        For Each cell_addr In cellsCol
             If record_change(CStr(cell_addr), CStr(statusVal), True) Then
                 confirmMsg = confirmMsg + "Статус для ячейки " + cell_addr + _
                 " был изменен" + vbCrLf
-                recordChangeSuccess = True
             Else
                 confirmMsg = confirmMsg + "Статус для ячейки " + cell_addr + _
                 " не может быть изменен, потому что у вас не хватает полномочий (check record_change)" + vbCrLf
             End If
         Next cell_addr
-        
-        'проверка установлен ли оутлук
-        If recordChangeSuccess Then
-            If mailSndr.completeSendMsg = "ok" Then
-                confirmMsg = confirmMsg + _
-                "Уведомление для успешно изменненых статусов отправлено (если отправка сообщения предусмотрена)" + vbCrLf
-            Else
-                confirmMsg = confirmMsg + "Уведомление не отправлено (Outlook не установлен или недоступен)" + vbCrLf
-            End If
-        End If
-    Else
-        'Debug.Assert False
-        MsgBox "Статус не был изменен, сообщение не отправлено"
     End If
-    
 
     Call hide_everything
     If confirmMsg <> "" Then MsgBox confirmMsg
@@ -183,7 +209,7 @@ If Not debugFlag Then
         Sheets("WorkStatus").Range(changeCellAddr).Value = inStatVal
     End If
 End If
-
+    record_change = True
 End Function
 
 
