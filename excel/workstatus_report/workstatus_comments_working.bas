@@ -16,7 +16,7 @@ End Sub
 
 Sub changeStatusDisableChecks()
     disableChecks = True
-    
+    Set helperSht = Worksheets("Helper")
     bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B1").Value
     bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B2").Value
     bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B3").Value
@@ -120,7 +120,7 @@ Sub bulkStatusChange(statusVal)
     'non authorized cells
     If Not disableChecks Then
         For Each cell_addr In cellsCol
-            isAauthString = isAuthorized(wStatSht.Range(cell_addr))
+            isAauthString = isAuthorized(wStatSht.Range(cell_addr), CStr(statusVal))
             If isAauthString = "ok" Then
                 authCellsCol.Add cell_addr
                 Call mailSndr.collectVarMsg(CStr(cell_addr), wStatSht.Range(cell_addr).Value, CStr(statusVal))
@@ -170,7 +170,8 @@ Sub bulkStatusChange(statusVal)
         
     Else 'If Not disableChecks Then
         For Each cell_addr In cellsCol
-            If record_change(CStr(cell_addr), CStr(statusVal), True) Then
+            If record_change(CStr(cell_addr), CStr(statusVal)) Then
+            'If record_change(CStr(cell_addr), CStr(statusVal), True) Then
                 confirmMsg = confirmMsg + "—татус дл€ €чейки " + cell_addr + _
                 " был изменен" + vbCrLf
             Else
@@ -178,6 +179,7 @@ Sub bulkStatusChange(statusVal)
                 " не может быть изменен, потому что у вас не хватает полномочий (check record_change)" + vbCrLf
             End If
         Next cell_addr
+        
     End If
 
     Call hide_everything
@@ -491,7 +493,7 @@ End Sub
 
 
 
-Function isAuthorized(changedCell As Range) As String
+Function isAuthorized(changedCell As Range, statVal As String) As String
     Dim compName As String
     Dim periodVal As String
     Dim cashSht As Worksheet
@@ -510,8 +512,8 @@ Function isAuthorized(changedCell As Range) As String
     If Not isCompanyInUsrCompColl(compName) Then
         isAuthorized = "у ¬ас недостаточно прав дл€ изменени€ статуса по компании " & compName
         Exit Function
-    ElseIf Not isUsrHasApprType(changedCell.Value) Then
-        isAuthorized = "у ¬ас недостаточно прав, чтобы поставить статус " & changedCell.Value
+    ElseIf Not isUsrHasApprType(statVal) Then
+        isAuthorized = "у ¬ас недостаточно прав, чтобы поставить статус " & statVal
         Exit Function
     ElseIf Not isValidPeriod(periodVal) Then
         isAuthorized = "необходимо выбрать мес€ц в поле период"
