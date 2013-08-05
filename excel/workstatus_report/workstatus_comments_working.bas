@@ -16,6 +16,13 @@ End Sub
 
 Sub changeStatusDisableChecks()
     disableChecks = True
+    
+    bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B1").Value
+    bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B2").Value
+    bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B3").Value
+    bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B4").Value
+    bulkStatusChangeUF.statusValCmBx.AddItem helperSht.Range("B5").Value
+
     Call computeCollectionFromSelection
     bulkStatusChangeUF.Show
     disableChecks = False
@@ -134,8 +141,8 @@ Sub bulkStatusChange(statusVal)
             recordChangeSuccess = False
             For Each cell_addr In authCellsCol
                 'change to
-                'If record_change(CStr(cell_addr), statusVal) Then
-                If record_change(CStr(cell_addr), CStr(statusVal), True) Then
+                If record_change(CStr(cell_addr), CStr(statusVal)) Then
+                'If record_change(CStr(cell_addr), CStr(statusVal), True) Then
                     confirmMsg = confirmMsg + "Статус для ячейки " + cell_addr + _
                     " был изменен" + vbCrLf
                     recordChangeSuccess = True 'if at least one status changed outlook message will be sent
@@ -209,7 +216,7 @@ If Not debugFlag Then
         Sheets("WorkStatus").Range(changeCellAddr).Value = inStatVal
     End If
 End If
-    record_change = True
+    'record_change = True
 End Function
 
 
