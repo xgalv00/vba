@@ -10,11 +10,13 @@ Dim cachedSht As Worksheet
 
 Function usr_init() As Collection
     Dim tmpColl As New Collection
+    
     Set cachedSht = ActiveSheet
+    
     usrLog = Environ("USERNAME")
     Set compColl = New Collection
     Set typeColl = New Collection
-    
+        
     Call find_usr
     tmpColl.Add usrLog, "login"
     tmpColl.Add usrName, "name"
@@ -22,6 +24,8 @@ Function usr_init() As Collection
     tmpColl.Add compColl, "company"
     tmpColl.Add usrEmail, "mail"
     Set usr_init = tmpColl
+    
+    cachedSht.Activate
 End Function
 
 
@@ -72,19 +76,6 @@ Private Sub fillUsrInfoFromSht(shtToWork As Worksheet)
     
 End Sub
 
-Private Function isExistInCol(itemVal As String, colForSearch As Collection) As Boolean
-    'loop through given collection and if meet given value return true
-    Dim resBool As Boolean
-    resBool = False
-    itemVal = LCase(Trim(itemVal))
-    For Each Item In colForSearch
-        If itemVal = LCase(Trim(Item)) Then
-            resBool = True
-            Exit For
-        End If
-    Next Item
-    isExistInCol = resBool
-End Function
 
 Function isCompanyInUsrCompColl(compName As String) As Boolean
     

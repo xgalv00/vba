@@ -129,6 +129,16 @@ Private Sub IE_Automation(url As String, status As Integer)
     objCollection.Click
     
     'IE object refreshed for checking of status change
+    IE.Quit
+    Set IE = Nothing
+    
+    Set IE = CreateObject("InternetExplorer.Application")
+    
+    Debug.Assert Not IE Is Nothing 'IE should be installed on user's computer and working properly
+    
+     ' You can uncoment Next line To see work status results
+    IE.Visible = True
+    
     Call refreshIE
     
     statusChanged = isStatusChanged()
@@ -212,7 +222,7 @@ Private Sub refreshIE()
     
     ' Wait while IE loading...
     timeCount = 0
-    Do While IE.Busy And timeCount < 10
+    Do While IE.Busy And timeCount < 20
         Application.Wait DateAdd("s", waitStep, Now)
         timeCount = timeCount + waitStep
     Loop

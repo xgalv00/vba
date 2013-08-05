@@ -16,6 +16,115 @@ Dim workStatSht As Worksheet
 Dim techSend As Boolean
 Dim f As UserFormMessage
 
+Public Function sendMsg() As Boolean
+    tmpSubject = "Рассылка по поводу изменения статуса"
+    'tmp stub for approved and started i don't know to whom i should send emails.
+    If tmpaddresList = "" Then
+        sendMsg = True
+        techSend = True
+        Exit Function
+    ElseIf tmpaddresList = "Error" Then
+        Debug.Assert False
+        'company name was not found
+        Exit Function
+    End If
+    
+    Call ShowSendMessage
+    If f.msgWasSent Then
+        sendMsg = True
+        techSend = False
+    End If
+End Function
+
+Public Sub collectVarMsg(targAddr As String, oldVal As String, inStatusVal As String)
+    Dim tmpRng As Range
+    
+    Set workStatSht = ActiveWorkbook.Sheets("Workstatus")
+    Set tmpRng = workStatSht.Range(targAddr)
+    Call initVars(tmpRng, inStatusVal)
+    'nobody could set default status
+    If statVal = "По умолчанию" Then
+        Exit Sub
+    End If
+    tmpText = tmpText + collectMsg(oldVal)
+    tmpaddresList = getAprAddr()
+
+End Sub
+
+Public Sub addPermanentMsg(usrName As String)
+    tmpText = tmpText & "Изменение произведено пользователем: " & usrName & vbCrLf
+End Sub
+
+Public Function completeSendMsg() As String
+    Dim resString As String
+    'Debug.Assert False
+    If Not techSend Then
+        If Not SendStatusMail(f.TextBoxTo.Caption, f.TextBoxText.Value, f.TextBoxSubject.Caption) Then
+            completeSendMsg = "Outlook не установлен"
+            Unload f
+            Exit Function
+        End If
+        Unload f
+    End If
+    Set workStatSht = Nothing
+    completeSendMsg = "ok"
+End Function
+
+Private Function collectMsg(oldVal As String) As String
+    collectMsg = "Статус для компании: " & compName & " формы: " & formNum & " (" & formName & ") периода: " & perName
+    collectMsg = collectMsg & " был изменен со статуса " & oldVal & " на " & statVal & vbLf
+End Function
+
+Private Function getAprAddr() As String
+    Dim shtToWork As Worksheet
+    Dim shtName As String
+    Dim foundCell As Range
+    Dim foundCellAddr As String
+    
+    shtName = getAprSht
+    If shtName = "" Then Exit Function
+     
+    Set shtToWork = Sheets(shtName)
+    shtToWork.Select
+    Columns("A:A").Select
+    Set foundCell = Selection.find(what:=compName, after:=ActiveCell, LookIn:=xlFormulas _
+        , LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
+        MatchCase:=False, SearchFormat:=False)
+    If Not foundCell Is Nothing Then
+        foundCellAddr = foundCell.Address
+        Do While Not foundCell Is Nothing
+            getAprAddr = getAprAddr & Cells(foundCell.Row, foundCell.Column + 3).Value & ";"
+            foundCell.Activate
+            Set foundCell = Selection.FindNext(ActiveCell)
+            If foundCellAddr = foundCell.Address Then Exit Do
+        Loop
+    Else
+        getAprAddr = "Error"
+    End If
+
+    'cleaning
+    Set foundCell = Nothing
+    'getAprAddr = "Chernokalskayaea@dtek.com" '"galkinva@dtek.com"
+    'Debug.Assert False
+End Function
+
+Private Function getAprSht() As String
+    If statVal = "Данные внесены" Then
+        getAprSht = "msfo_table"
+    ElseIf statVal = "Данные содержат ошибки" Or statVal = "Принято" Then
+        getAprSht = "user_table"
+    End If
+End Function
+
+Private Sub initVars(changedRng As Range, inStatusVal As String)
+    
+    compName = workStatSht.Cells(10, changedRng.Column).Value
+    formName = workStatSht.Cells(changedRng.Row, 12).Value
+    formNum = workStatSht.Cells(changedRng.Row, 11).Value
+    perName = workStatSht.Range("N3").Value
+    statVal = inStatusVal
+    
+End Sub
 
 Function SendStatusMail(addresList, text, subject) As Boolean
     '
@@ -61,107 +170,4 @@ Sub ShowSendMessage()
     '
     f.Show
     '
-End Sub
-
-
-Public Function sendMsg(targAddr As String, oldVal As String, usrName As String) As Boolean
-    Dim tmpRng As Range
-    
-    Set workStatSht = ActiveWorkbook.Sheets("Workstatus")
-    Set tmpRng = workStatSht.Range(targAddr)
-    Call initVars(tmpRng)
-    'nobody could set default status
-    If statVal = "По умолчанию" Then
-        Exit Function
-    End If
-    tmpText = collectMsg(oldVal, usrName)
-    tmpaddresList = getAprAddr()
-    'tmp stub for approved and started i don't know to whom i should send emails.
-    If tmpaddresList = "" Then
-        sendMsg = True
-        techSend = True
-        Exit Function
-    ElseIf tmpaddresList = "Error" Then
-        Debug.Assert False
-        'company name was not found
-        Exit Function
-    End If
-    tmpSubject = "Рассылка по поводу изменения статуса"
-    Call ShowSendMessage
-    If f.msgWasSent Then
-        sendMsg = True
-        techSend = False
-    End If
-End Function
-
-Public Function completeSendMsg() As String
-    Dim resString As String
-    'Debug.Assert False
-    If Not techSend Then
-        If Not SendStatusMail(f.TextBoxTo.Caption, f.TextBoxText.Value, f.TextBoxSubject.Caption) Then
-            completeSendMsg = "Outlook не установлен"
-            Unload f
-            Exit Function
-        End If
-        Unload f
-    End If
-    Set workStatSht = Nothing
-    completeSendMsg = "ok"
-End Function
-
-Private Function collectMsg(oldVal As String, usrName As String) As String
-    collectMsg = "Статус для компании: " & compName & " формы: " & formNum & " (" & formName & ") периода: " & perName & vbLf
-    collectMsg = collectMsg & " был изменен со статуса " & oldVal & " на " & statVal & vbLf
-    collectMsg = collectMsg & "Статус был изменен пользователем: " & usrName
-End Function
-
-Private Function getAprAddr() As String
-    Dim shtToWork As Worksheet
-    Dim shtName As String
-    Dim foundCell As Range
-    Dim foundCellAddr As String
-    
-    shtName = getAprSht
-    If shtName = "" Then Exit Function
-     
-    Set shtToWork = Sheets(shtName)
-    shtToWork.Select
-    Columns("A:A").Select
-    Set foundCell = Selection.find(what:=compName, after:=ActiveCell, LookIn:=xlFormulas _
-        , LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
-        MatchCase:=False, SearchFormat:=False)
-    If Not foundCell Is Nothing Then
-        foundCellAddr = foundCell.Address
-        Do While Not foundCell Is Nothing
-            getAprAddr = getAprAddr & Cells(foundCell.Row, foundCell.Column + 3).Value & ";"
-            foundCell.Activate
-            Set foundCell = Selection.FindNext(ActiveCell)
-            If foundCellAddr = foundCell.Address Then Exit Do
-        Loop
-    Else
-        getAprAddr = "Error"
-    End If
-
-    'cleaning
-    Set foundCell = Nothing
-    'getAprAddr = "Chernokalskayaea@dtek.com" '"galkinva@dtek.com"
-    'Debug.Assert False
-End Function
-
-Private Function getAprSht() As String
-    If statVal = "Данные внесены" Then
-        getAprSht = "msfo_table"
-    ElseIf statVal = "Данные содержат ошибки" Or statVal = "Принято" Then
-        getAprSht = "user_table"
-    End If
-End Function
-
-Private Sub initVars(changedRng As Range)
-    
-    compName = workStatSht.Cells(10, changedRng.Column).Value
-    formName = workStatSht.Cells(changedRng.Row, 12).Value
-    formNum = workStatSht.Cells(changedRng.Row, 11).Value
-    perName = workStatSht.Range("N3").Value
-    statVal = changedRng.Value
-    
 End Sub
